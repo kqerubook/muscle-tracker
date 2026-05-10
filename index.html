@@ -60,7 +60,9 @@
     .history-badge { font-size: 12px; font-weight: 700; padding: 2px 10px; border-radius: 20px; background: var(--blue); color: #fff; }
     .history-meta  { font-size: 13px; color: var(--gray); }
     .history-exs   { font-size: 14px; color: var(--label2); }
-    .history-vol   { font-size: 12px; color: var(--blue); font-weight: 600; margin-top: 5px; }
+    .date-row  { display: flex; justify-content: space-between; align-items: baseline; padding: 14px 4px 6px; }
+    .date-label { font-size: 13px; font-weight: 600; color: var(--gray); }
+    .date-vol   { font-size: 13px; font-weight: 700; color: var(--blue); }
     .history-empty { text-align: center; color: var(--gray); font-size: 15px; padding: 32px 0; }
     .btn-export-all { width: 100%; padding: 14px; background: var(--card); border: 1.5px solid var(--sep); border-radius: 14px; color: var(--blue); font-size: 15px; font-weight: 600; cursor: pointer; margin-top: 4px; display: flex; align-items: center; justify-content: center; gap: 6px; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
     .btn-export-all:active { background: var(--fill); }
@@ -161,7 +163,7 @@
   <div class="home-header">
     <div style="display:flex;justify-content:space-between;align-items:baseline;">
       <div class="home-title">筋トレ</div>
-      <div style="font-size:11px;color:var(--sep);">v1.0.8</div>
+      <div style="font-size:11px;color:var(--sep);">v1.0.9</div>
     </div>
     <div id="home-date" class="home-date"></div>
   </div>
@@ -297,25 +299,47 @@ function renderHome() {
   var list = clearEl('history-list');
   if (!wkHistory.length) {
     list.appendChild(h('div', {cls: 'history-empty', txt: 'まだ記録がありません'}));
+    var expBtn0 = h('button', {cls: 'btn-export-all', txt: '📤 全記録を書き出し'});
+    expBtn0.addEventListener('click', exportAllData);
+    list.appendChild(expBtn0);
     return;
   }
-  wkHistory.slice(0, 6).forEach(function(s) {
-    var exNames = s.exercises.map(function(e) { return e.name; }).join(' · ');
-    var dur = s.duration ? ' · ' + fmtDur(s.duration) : '';
-    var vol = calcVolume(s);
-    var volStr = vol > 0 ? '総重量 ' + (vol >= 1000 ? (vol / 1000).toFixed(1) + 't' : vol + 'kg') : '';
-    var card = h('div', {cls: 'history-card'});
-    var top  = h('div', {cls: 'history-top'});
-    append(top,
-      h('span', {cls: 'history-badge', txt: s.type}),
-      h('span', {cls: 'history-meta',  txt: s.date + dur})
-    );
-    append(card, top, h('div', {cls: 'history-exs', txt: exNames}));
-    if (volStr) card.appendChild(h('div', {cls: 'history-vol', txt: volStr}));
-    card.style.cursor = 'pointer';
-    card.addEventListener('click', (function(sess) { return function() { showHistoryDetail(sess); }; })(s));
-    list.appendChild(card);
+
+  // 日付ごとにグループ化
+  var dateMap = {}, orderedDates = [];
+  wkHistory.forEach(function(s) {
+    if (!dateMap[s.date]) { dateMap[s.date] = []; orderedDates.push(s.date); }
+    dateMap[s.date].push(s);
   });
+
+  orderedDates.slice(0, 10).forEach(function(date) {
+    var sessions = dateMap[date];
+    var totalVol = sessions.reduce(function(sum, s) { return sum + calcVolume(s); }, 0);
+    var volStr = totalVol >= 1000 ? (totalVol / 1000).toFixed(1) + 't' : totalVol + 'kg';
+
+    var dateRow = h('div', {cls: 'date-row'});
+    append(dateRow,
+      h('span', {cls: 'date-label', txt: date}),
+      totalVol > 0 ? h('span', {cls: 'date-vol', txt: '合計 ' + volStr}) : null
+    );
+    list.appendChild(dateRow);
+
+    sessions.forEach(function(s) {
+      var exNames = s.exercises.map(function(e) { return e.name; }).join(' · ');
+      var dur = s.duration ? fmtDur(s.duration) : '';
+      var card = h('div', {cls: 'history-card'});
+      var top  = h('div', {cls: 'history-top'});
+      append(top,
+        h('span', {cls: 'history-badge', txt: s.type}),
+        h('span', {cls: 'history-meta',  txt: dur})
+      );
+      append(card, top, h('div', {cls: 'history-exs', txt: exNames}));
+      card.style.cursor = 'pointer';
+      card.addEventListener('click', (function(sess) { return function() { showHistoryDetail(sess); }; })(s));
+      list.appendChild(card);
+    });
+  });
+
   var expBtn = h('button', {cls: 'btn-export-all', txt: '📤 全記録を書き出し'});
   expBtn.addEventListener('click', exportAllData);
   list.appendChild(expBtn);
