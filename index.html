@@ -13,6 +13,7 @@
     * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
     :root {
+      color-scheme: light only;
       --bg:     #F2F2F7;
       --card:   #FFFFFF;
       --blue:   #FF9500;
@@ -155,7 +156,7 @@
   <div class="home-header">
     <div style="display:flex;justify-content:space-between;align-items:baseline;">
       <div class="home-title">筋トレ</div>
-      <div style="font-size:11px;color:var(--sep);">v1.0.5</div>
+      <div style="font-size:11px;color:var(--sep);">v1.0.6</div>
     </div>
     <div id="home-date" class="home-date"></div>
   </div>
@@ -237,7 +238,7 @@ const EXERCISES = {
 const RING_CIRC = 188.5;
 
 var session     = null;
-var history     = [];
+var wkHistory   = [];
 var elapsedTick = null;
 var tmr = { running: false, remaining: 60, base: 60, tick: null };
 
@@ -274,7 +275,7 @@ function clearEl(id) {
 // ── 起動 ──────────────────────────────────────────────────────────────────────
 
 function init() {
-  try { history = JSON.parse(localStorage.getItem('muscle_history') || '[]'); } catch(e) { history = []; }
+  try { var ph = JSON.parse(localStorage.getItem('muscle_history') || '[]'); wkHistory = Array.isArray(ph) ? ph : []; } catch(e) { wkHistory = []; }
   try { var d = localStorage.getItem('muscle_draft'); if (d) session = JSON.parse(d); } catch(e) {}
   renderHome();
   updateTimerUI();
@@ -289,11 +290,11 @@ function renderHome() {
     d.getFullYear() + '年' + (d.getMonth()+1) + '月' + d.getDate() + '日（' + w + '）';
 
   var list = clearEl('history-list');
-  if (!history.length) {
+  if (!wkHistory.length) {
     list.appendChild(h('div', {cls: 'history-empty', txt: 'まだ記録がありません'}));
     return;
   }
-  history.slice(0, 6).forEach(function(s) {
+  wkHistory.slice(0, 6).forEach(function(s) {
     var exNames = s.exercises.map(function(e) { return e.name; }).join(' · ');
     var dur = s.duration ? ' · ' + fmtDur(s.duration) : '';
     var card = h('div', {cls: 'history-card'});
@@ -466,7 +467,7 @@ function addExercise(name) {
 
 function bestRecord(name) {
   var best = null;
-  history.forEach(function(sess) {
+  wkHistory.forEach(function(sess) {
     if (!sess || !sess.exercises) return;
     sess.exercises.forEach(function(ex) {
       if (ex.name !== name) return;
@@ -531,9 +532,9 @@ function finishWorkout() {
     }).filter(function(ex) { return ex.sets.length > 0; })
   };
 
-  history.unshift(done);
-  if (history.length > 200) history = history.slice(0, 200);
-  localStorage.setItem('muscle_history', JSON.stringify(history));
+  wkHistory.unshift(done);
+  if (wkHistory.length > 200) wkHistory = wkHistory.slice(0, 200);
+  localStorage.setItem('muscle_history', JSON.stringify(wkHistory));
   localStorage.removeItem('muscle_draft');
   session = done;
 
@@ -655,8 +656,8 @@ function renderSummary(copied) {
   document.getElementById('summary-meta').textContent =
     session.date + '　' + session.type + '　' + fmtDur(session.duration || 0) + '　' + total + 'セット';
 
-  var prevSess    = history.find(function(s) { return s.type === session.type && s.date !== session.date; });
-  var prevHistory = history.slice(1);
+  var prevSess    = wkHistory.find(function(s) { return s.type === session.type && s.date !== session.date; });
+  var prevHistory = wkHistory.slice(1);
 
   var body = clearEl('summary-body');
 
