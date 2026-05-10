@@ -80,11 +80,11 @@
     .set-row  { display: flex; align-items: center; gap: 6px; padding: 8px 14px; border-top: 1px solid var(--sep); }
     .set-num  { font-size: 14px; font-weight: 600; color: var(--gray); width: 24px; flex-shrink: 0; text-align: center; }
     .stepper  { display: flex; align-items: center; flex: 1; gap: 2px; }
-    .step-btn { width: 34px; height: 34px; border-radius: 50%; border: none; background: var(--fill); font-size: 20px; line-height: 1; color: var(--blue); cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: transform .1s; user-select: none; -webkit-user-select: none; }
+    .step-btn { width: 34px; height: 34px; border-radius: 50%; border: 1.5px solid var(--sep); background: var(--fill); font-size: 20px; line-height: 1; color: var(--blue); cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: transform .1s; user-select: none; -webkit-user-select: none; }
     .step-btn:active { transform: scale(.88); background: #D8D8DD; }
     .step-vwrap { flex: 1; text-align: center; cursor: pointer; padding: 2px 0; min-width: 0; }
     .step-val  { font-size: 16px; font-weight: 700; font-variant-numeric: tabular-nums; display: block; line-height: 1.3; }
-    .step-val.dim { color: #D1D1D6; }
+    .step-val.dim { color: var(--gray); }
     .step-unit { font-size: 10px; color: var(--gray); display: block; line-height: 1; }
     .step-input { width: 58px; text-align: center; border: 1.5px solid var(--blue); border-radius: 6px; padding: 3px 2px; font-size: 16px; font-weight: 700; background: var(--card); outline: none; font-family: inherit; -webkit-appearance: none; display: block; margin: 0 auto; }
 
@@ -154,7 +154,7 @@
   <div class="home-header">
     <div style="display:flex;justify-content:space-between;align-items:baseline;">
       <div class="home-title">筋トレ</div>
-      <div style="font-size:11px;color:var(--sep);">v1.0.1</div>
+      <div style="font-size:11px;color:var(--sep);">v1.0.2</div>
     </div>
     <div id="home-date" class="home-date"></div>
   </div>
