@@ -14,10 +14,10 @@
     :root {
       --bg:     #F2F2F7;
       --card:   #FFFFFF;
-      --blue:   #007AFF;
+      --blue:   #FF9500;
       --green:  #34C759;
       --red:    #FF3B30;
-      --orange: #FF9500;
+      --orange: #E67E00;
       --gray:   #8E8E93;
       --sep:    #C6C6C8;
       --label:  #000000;
@@ -74,32 +74,36 @@
     .ex-card      { background: var(--card); border-radius: 14px; margin-bottom: 12px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,.07); }
     .ex-card-head { padding: 13px 16px 10px; display: flex; justify-content: space-between; align-items: baseline; border-bottom: 1px solid var(--sep); }
     .ex-name      { font-size: 16px; font-weight: 600; }
-    .ex-prev-lbl  { font-size: 12px; color: var(--gray); max-width: 55%; text-align: right; }
+    .ex-best-lbl  { font-size: 12px; color: var(--blue); font-weight: 600; max-width: 55%; text-align: right; }
 
-    .sets-head { display: grid; grid-template-columns: 30px 1fr 1fr 42px; gap: 6px; padding: 7px 16px 4px; }
-    .sets-head span { font-size: 12px; font-weight: 600; color: var(--gray); text-align: center; }
-    .sets-head span:first-child { text-align: left; }
+    /* STEPPER */
+    .set-row  { display: flex; align-items: center; gap: 6px; padding: 8px 14px; border-top: 1px solid var(--sep); }
+    .set-num  { font-size: 14px; font-weight: 600; color: var(--gray); width: 24px; flex-shrink: 0; text-align: center; }
+    .stepper  { display: flex; align-items: center; flex: 1; gap: 2px; }
+    .step-btn { width: 34px; height: 34px; border-radius: 50%; border: none; background: var(--fill); font-size: 20px; line-height: 1; color: var(--blue); cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: transform .1s; user-select: none; -webkit-user-select: none; }
+    .step-btn:active { transform: scale(.88); background: #D8D8DD; }
+    .step-vwrap { flex: 1; text-align: center; cursor: pointer; padding: 2px 0; min-width: 0; }
+    .step-val  { font-size: 16px; font-weight: 700; font-variant-numeric: tabular-nums; display: block; line-height: 1.3; }
+    .step-val.dim { color: #D1D1D6; }
+    .step-unit { font-size: 10px; color: var(--gray); display: block; line-height: 1; }
+    .step-input { width: 58px; text-align: center; border: 1.5px solid var(--blue); border-radius: 6px; padding: 3px 2px; font-size: 16px; font-weight: 700; background: var(--card); outline: none; font-family: inherit; -webkit-appearance: none; display: block; margin: 0 auto; }
 
-    .set-row   { display: grid; grid-template-columns: 30px 1fr 1fr 42px; align-items: center; gap: 6px; padding: 6px 16px; border-top: 1px solid var(--sep); }
-    .set-num   { font-size: 15px; font-weight: 600; color: var(--gray); }
-    .set-input { background: var(--fill); border: none; border-radius: 8px; padding: 9px 8px; font-size: 16px; font-weight: 500; text-align: center; width: 100%; font-family: inherit; color: var(--label); outline: none; -webkit-appearance: none; }
-    .set-input:focus { background: #E8E8ED; }
-    .set-input::placeholder { color: var(--sep); font-weight: 400; }
-
-    .done-btn     { width: 34px; height: 34px; border-radius: 50%; border: 2px solid var(--sep); background: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 15px; margin: 0 auto; transition: all .15s; }
+    .done-btn  { width: 36px; height: 36px; border-radius: 50%; border: 2px solid var(--sep); background: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; transition: all .15s; }
     .done-btn.done { background: var(--green); border-color: var(--green); color: #fff; }
     .done-btn:active { transform: scale(.88); }
 
     .add-set-btn { width: 100%; padding: 12px; border: none; background: none; color: var(--blue); font-size: 15px; font-weight: 500; cursor: pointer; border-top: 1px solid var(--sep); display: flex; align-items: center; justify-content: center; gap: 4px; }
     .add-ex-btn  { width: 100%; padding: 16px; background: var(--card); border: none; border-radius: 14px; color: var(--blue); font-size: 16px; font-weight: 500; cursor: pointer; box-shadow: 0 1px 4px rgba(0,0,0,.07); display: flex; align-items: center; justify-content: center; gap: 6px; }
 
-    .timer-bar     { position: fixed; bottom: 0; left: 0; right: 0; padding: 10px 16px calc(var(--sb) + 10px); background: rgba(242,242,247,.96); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-top: 1px solid var(--sep); display: flex; align-items: center; gap: 10px; }
-    .timer-display { flex: 1; background: var(--card); border-radius: 12px; padding: 11px 16px; display: flex; align-items: center; justify-content: space-between; }
-    .timer-lbl { font-size: 13px; color: var(--gray); }
-    .timer-val { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
-    .timer-val.on  { color: var(--green); }
-    .timer-val.hot { color: var(--red); }
-    .timer-btn { width: 50px; height: 50px; border-radius: 50%; background: var(--blue); border: none; color: #fff; font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    /* TIMER RING */
+    .timer-bar       { position: fixed; bottom: 0; left: 0; right: 0; padding: 8px 24px calc(var(--sb) + 8px); background: rgba(242,242,247,.96); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-top: 1px solid var(--sep); display: flex; align-items: center; justify-content: center; gap: 24px; }
+    .timer-ring-wrap { position: relative; width: 72px; height: 72px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+    .timer-ring-wrap svg { position: absolute; inset: 0; width: 72px; height: 72px; }
+    #ring-prog { transition: stroke-dashoffset 0.9s linear, stroke 0.3s; }
+    .timer-val-center { font-size: 16px; font-weight: 700; font-variant-numeric: tabular-nums; position: relative; z-index: 1; }
+    .timer-val-center.on  { color: var(--blue); }
+    .timer-val-center.hot { color: var(--red); }
+    .timer-btn { width: 56px; height: 56px; border-radius: 50%; background: var(--blue); border: none; color: #fff; font-size: 22px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: transform .1s; }
     .timer-btn:active { transform: scale(.91); }
     .timer-btn.on { background: var(--orange); }
 
@@ -125,11 +129,14 @@
     .sum-card    { background: var(--card); border-radius: 12px; margin-bottom: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
     .sum-ex-name { font-size: 15px; font-weight: 600; padding: 12px 16px; border-bottom: 1px solid var(--sep); }
     .sum-row     { display: flex; align-items: center; padding: 10px 16px; gap: 10px; border-top: 1px solid var(--sep); }
-    .sum-set-num  { font-size: 14px; color: var(--gray); width: 44px; }
+    .sum-set-num  { font-size: 14px; color: var(--gray); width: 44px; flex-shrink: 0; }
     .sum-set-data { font-size: 15px; font-weight: 500; }
-    .sum-prev     { font-size: 13px; color: var(--gray); margin-left: auto; }
+    .sum-pr       { font-size: 12px; font-weight: 700; color: #fff; background: var(--blue); padding: 2px 8px; border-radius: 10px; margin-left: auto; flex-shrink: 0; }
+    .sum-prev     { font-size: 13px; color: var(--gray); margin-left: auto; flex-shrink: 0; }
     .sum-prev.up  { color: var(--green); font-weight: 600; }
 
+    .copy-banner { background: #F0FAF0; border: 1px solid #A8D5A8; border-radius: 12px; padding: 14px 18px; margin-bottom: 12px; text-align: center; font-size: 14px; font-weight: 600; color: #2A7A2A; }
+    .copy-fail   { background: var(--card); border: 1px solid var(--sep); border-radius: 12px; padding: 12px 18px; margin-bottom: 10px; text-align: center; font-size: 13px; color: var(--gray); }
     .btn-export  { width: 100%; padding: 16px; background: var(--blue); color: #fff; border: none; border-radius: 13px; font-size: 16px; font-weight: 600; cursor: pointer; margin-bottom: 10px; }
     .btn-export:active { opacity: .78; }
     .btn-to-home { width: 100%; padding: 16px; background: var(--card); color: var(--blue); border: none; border-radius: 13px; font-size: 16px; font-weight: 600; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
@@ -182,9 +189,14 @@
   </div>
   <div id="workout-body" class="workout-body"></div>
   <div class="timer-bar">
-    <div class="timer-display">
-      <span class="timer-lbl">インターバル</span>
-      <span id="timer-val" class="timer-val">1:00</span>
+    <div class="timer-ring-wrap">
+      <svg viewBox="0 0 72 72">
+        <circle cx="36" cy="36" r="30" fill="none" stroke="#C6C6C8" stroke-width="5"/>
+        <circle id="ring-prog" cx="36" cy="36" r="30" fill="none" stroke="#C6C6C8" stroke-width="5"
+          stroke-linecap="round" stroke-dasharray="188.5" stroke-dashoffset="0"
+          transform="rotate(-90 36 36)"/>
+      </svg>
+      <span id="timer-val" class="timer-val-center">1:00</span>
     </div>
     <button id="timer-btn" class="timer-btn" onclick="toggleTimer()">▶</button>
   </div>
@@ -212,42 +224,38 @@
 <div id="toast" class="toast"></div>
 
 <script>
-// ── 定数 ─────────────────────────────────────────────────────────────────────
-
 const EXERCISES = {
   Push: ['ベンチプレス','インクラインダンベルプレス','ショルダープレス','サイドレイズ','ケーブルプッシュダウン'],
   Pull: ['ラットプルダウン','チンアップ','ベントオーバーローイング','シーテッドロウ','フェイスプル','バーベルカール'],
   Legs: ['スクワット','レッグプレス','ルーマニアンデッドリフト','レッグカール','カーフレイズ']
 };
 
-// ── 状態 ──────────────────────────────────────────────────────────────────────
+const RING_CIRC = 188.5;
 
-let session  = null;
-let history  = [];
-let elapsedTick = null;
-let tmr = { running: false, remaining: 60, base: 60, tick: null };
+var session     = null;
+var history     = [];
+var elapsedTick = null;
+var tmr = { running: false, remaining: 60, base: 60, tick: null };
 
-// ── DOMヘルパー ───────────────────────────────────────────────────────────────
+// ── DOM ヘルパー ──────────────────────────────────────────────────────────────
 
 function h(tag, props) {
-  const el = document.createElement(tag);
+  var el = document.createElement(tag);
   if (props) {
     Object.entries(props).forEach(function(entry) {
       var k = entry[0], v = entry[1];
-      if (k === 'cls')  { el.className = v; }
+      if (k === 'cls')       { el.className = v; }
       else if (k === 'txt')  { el.textContent = v; }
       else if (k === 'val')  { el.value = v; }
-      else if (k === 'ph')   { el.placeholder = v; }
       else if (k[0] === '$') { el.addEventListener(k.slice(1), v); }
-      else { el.setAttribute(k, v); }
+      else                   { el.setAttribute(k, v); }
     });
   }
   return el;
 }
 
 function append(parent) {
-  var kids = Array.prototype.slice.call(arguments, 1);
-  kids.forEach(function(c) {
+  Array.prototype.slice.call(arguments, 1).forEach(function(c) {
     if (c != null) parent.appendChild(typeof c === 'string' ? document.createTextNode(c) : c);
   });
   return parent;
@@ -265,6 +273,7 @@ function init() {
   try { history = JSON.parse(localStorage.getItem('muscle_history') || '[]'); } catch(e) { history = []; }
   try { var d = localStorage.getItem('muscle_draft'); if (d) session = JSON.parse(d); } catch(e) {}
   renderHome();
+  updateTimerUI();
 }
 
 // ── ホーム ────────────────────────────────────────────────────────────────────
@@ -276,12 +285,10 @@ function renderHome() {
     d.getFullYear() + '年' + (d.getMonth()+1) + '月' + d.getDate() + '日（' + w + '）';
 
   var list = clearEl('history-list');
-
   if (!history.length) {
     list.appendChild(h('div', {cls: 'history-empty', txt: 'まだ記録がありません'}));
     return;
   }
-
   history.slice(0, 6).forEach(function(s) {
     var exNames = s.exercises.map(function(e) { return e.name; }).join(' · ');
     var dur = s.duration ? ' · ' + fmtDur(s.duration) : '';
@@ -289,7 +296,7 @@ function renderHome() {
     var top  = h('div', {cls: 'history-top'});
     append(top,
       h('span', {cls: 'history-badge', txt: s.type}),
-      h('span', {cls: 'history-meta', txt: s.date + dur})
+      h('span', {cls: 'history-meta',  txt: s.date + dur})
     );
     append(card, top, h('div', {cls: 'history-exs', txt: exNames}));
     list.appendChild(card);
@@ -319,66 +326,106 @@ function renderWorkout() {
 }
 
 function buildExCard(ex, ei) {
-  var prev = prevSets(ex.name, session.type);
-  var prevParts = prev ? prev.slice(0,3).map(function(s) {
-    return (s.weight || '—') + '×' + (s.reps || '—');
-  }).join(' / ') : '';
+  var best    = bestRecord(ex.name);
+  var bestTxt = (best && best.weight > 0) ? 'ベスト ' + best.weight + 'kg × ' + best.reps + '回' : '';
 
   var card     = h('div', {cls: 'ex-card'});
   var cardHead = h('div', {cls: 'ex-card-head'});
   append(cardHead,
-    h('span', {cls: 'ex-name', txt: ex.name}),
-    h('span', {cls: 'ex-prev-lbl', txt: prevParts ? '前回 ' + prevParts : ''})
-  );
-
-  var setsHead = h('div', {cls: 'sets-head'});
-  append(setsHead,
-    h('span', {txt: 'SET'}), h('span', {txt: '重さ kg'}),
-    h('span', {txt: '回数'}), h('span', {})
+    h('span', {cls: 'ex-name',     txt: ex.name}),
+    h('span', {cls: 'ex-best-lbl', txt: bestTxt})
   );
 
   var setsBody = h('div', {cls: 'sets-body'});
   ex.sets.forEach(function(s, si) {
-    setsBody.appendChild(buildSetRow(s, ei, si, prev));
+    setsBody.appendChild(buildSetRow(s, ei, si));
   });
 
-  var addSetBtn = h('button', {cls: 'add-set-btn'});
-  addSetBtn.textContent = '＋ セット';
+  var addSetBtn = h('button', {cls: 'add-set-btn', txt: '＋ セット'});
   addSetBtn.addEventListener('click', (function(i) { return function() { addSet(i); }; })(ei));
 
-  append(card, cardHead, setsHead, setsBody, addSetBtn);
+  append(card, cardHead, setsBody, addSetBtn);
   return card;
 }
 
-function buildSetRow(s, ei, si, prev) {
-  var pw = (prev && prev[si] && prev[si].weight != null) ? String(prev[si].weight) : '';
-  var pr = (prev && prev[si] && prev[si].reps   != null) ? String(prev[si].reps)   : '';
+// ── ステッパー ────────────────────────────────────────────────────────────────
 
-  var wInput = h('input', {cls: 'set-input', type: 'number', inputmode: 'decimal', min: '0', step: '0.5', ph: pw});
-  if (s.weight !== '') wInput.value = s.weight;
-  wInput.addEventListener('change', (function(i,j) {
-    return function(e) { upd(i, j, 'weight', e.target.value); };
-  })(ei, si));
+function buildStepper(initVal, step, unit, min, max, onChange) {
+  var val   = typeof initVal === 'number' ? initVal : 0;
+  var wrap  = h('div', {cls: 'stepper'});
+  var minus = h('button', {cls: 'step-btn', type: 'button', txt: '−'});
+  var plus  = h('button', {cls: 'step-btn', type: 'button', txt: '＋'});
+  var vwrap = h('div', {cls: 'step-vwrap'});
+  var valEl = h('span', {cls: val > 0 ? 'step-val' : 'step-val dim', txt: String(val)});
+  var unitEl = h('span', {cls: 'step-unit', txt: unit});
+  append(vwrap, valEl, unitEl);
 
-  var rInput = h('input', {cls: 'set-input', type: 'number', inputmode: 'numeric', min: '0', ph: pr});
-  if (s.reps !== '') rInput.value = s.reps;
-  rInput.addEventListener('change', (function(i,j) {
-    return function(e) { upd(i, j, 'reps', e.target.value); };
-  })(ei, si));
+  function setVal(v) {
+    val = parseFloat(Math.max(min, Math.min(max, v)).toFixed(1));
+    valEl.textContent = String(val);
+    valEl.className   = val > 0 ? 'step-val' : 'step-val dim';
+    onChange(val);
+  }
 
-  var doneBtn = h('button', {cls: s.done ? 'done-btn done' : 'done-btn'});
-  doneBtn.textContent = '✓';
-  doneBtn.addEventListener('click', (function(i,j) {
-    return function() { toggleDone(i, j); };
-  })(ei, si));
+  minus.addEventListener('click', function() { setVal(val - step); });
+  plus.addEventListener('click',  function() { setVal(val + step); });
+
+  var holdId = null;
+  function startHold(fn) { holdId = setInterval(fn, 160); }
+  function stopHold() { if (holdId) { clearInterval(holdId); holdId = null; } }
+
+  minus.addEventListener('touchstart',  function(e) { e.preventDefault(); startHold(function() { setVal(val - step); }); });
+  minus.addEventListener('touchend',    stopHold);
+  minus.addEventListener('touchcancel', stopHold);
+  plus.addEventListener('touchstart',   function(e) { e.preventDefault(); startHold(function() { setVal(val + step); }); });
+  plus.addEventListener('touchend',     stopHold);
+  plus.addEventListener('touchcancel',  stopHold);
+
+  vwrap.addEventListener('click', function() {
+    if (vwrap.querySelector('.step-input')) return;
+    var inp = h('input', {
+      cls: 'step-input', type: 'number',
+      inputmode: unit === 'kg' ? 'decimal' : 'numeric',
+      min: String(min), step: String(step)
+    });
+    inp.value = val > 0 ? String(val) : '';
+    vwrap.replaceChild(inp, valEl);
+    vwrap.removeChild(unitEl);
+    inp.focus(); inp.select();
+    function commit() {
+      var v = parseFloat(inp.value);
+      if (!isNaN(v)) setVal(v);
+      if (vwrap.contains(inp)) { vwrap.replaceChild(valEl, inp); vwrap.appendChild(unitEl); }
+    }
+    inp.addEventListener('blur',    commit);
+    inp.addEventListener('keydown', function(e) { if (e.key === 'Enter') inp.blur(); });
+  });
+
+  append(wrap, minus, vwrap, plus);
+  return wrap;
+}
+
+function buildSetRow(s, ei, si) {
+  var wVal = parseFloat(s.weight) || 0;
+  var rVal = parseInt(s.reps)     || 0;
+
+  var wStep = buildStepper(wVal, 2.5, 'kg',  0, 300,
+    (function(i,j){ return function(v){ upd(i,j,'weight',v); }; })(ei,si));
+  var rStep = buildStepper(rVal, 1,   'rep', 0,  99,
+    (function(i,j){ return function(v){ upd(i,j,'reps',v); }; })(ei,si));
+
+  var doneBtn = h('button', {cls: s.done ? 'done-btn done' : 'done-btn', txt: '✓'});
+  doneBtn.addEventListener('click', (function(i,j){
+    return function() { toggleDone(i,j); };
+  })(ei,si));
 
   var row = h('div', {cls: 'set-row'});
-  append(row, h('span', {cls: 'set-num', txt: String(si + 1)}), wInput, rInput, doneBtn);
+  append(row, h('span', {cls: 'set-num', txt: String(si+1)}), wStep, rStep, doneBtn);
   return row;
 }
 
 function upd(ei, si, field, val) {
-  session.exercises[ei].sets[si][field] = val === '' ? '' : (parseFloat(val) || val);
+  session.exercises[ei].sets[si][field] = parseFloat(val) || 0;
   saveDraft();
 }
 
@@ -391,7 +438,7 @@ function toggleDone(ei, si) {
 function addSet(ei) {
   var sets = session.exercises[ei].sets;
   var last = sets[sets.length - 1] || {};
-  sets.push({ weight: last.weight || '', reps: last.reps || '', done: false });
+  sets.push({ weight: last.weight || 0, reps: last.reps || 0, done: false });
   renderWorkout();
 }
 
@@ -399,20 +446,57 @@ function addExercise(name) {
   if (session.exercises.some(function(e) { return e.name === name; })) {
     showToast(name + ' は追加済みです'); return;
   }
-  session.exercises.push({ name: name, sets: [{ weight: '', reps: '', done: false }] });
+  session.exercises.push({ name: name, sets: [{ weight: 0, reps: 0, done: false }] });
   renderWorkout();
 }
 
-function prevSets(name, type) {
-  var prev = history.find(function(s) { return s.type === type; });
-  if (!prev) return null;
-  var ex = prev.exercises.find(function(e) { return e.name === name; });
-  return ex ? ex.sets : null;
+// ── ベスト記録 ────────────────────────────────────────────────────────────────
+
+function bestRecord(name) {
+  var best = null;
+  history.forEach(function(sess) {
+    sess.exercises.forEach(function(ex) {
+      if (ex.name !== name) return;
+      ex.sets.forEach(function(s) {
+        var w = parseFloat(s.weight) || 0;
+        var r = parseInt(s.reps)     || 0;
+        if (!best || w > best.weight || (w === best.weight && r > best.reps)) {
+          best = { weight: w, reps: r };
+        }
+      });
+    });
+  });
+  return best;
 }
+
+function checkPR(name, weight, reps, prevHistory) {
+  var w = parseFloat(weight) || 0;
+  var r = parseInt(reps)     || 0;
+  if (w === 0) return false;
+  var best = null;
+  prevHistory.forEach(function(sess) {
+    sess.exercises.forEach(function(ex) {
+      if (ex.name !== name) return;
+      ex.sets.forEach(function(s) {
+        var sw = parseFloat(s.weight) || 0;
+        var sr = parseInt(s.reps)     || 0;
+        if (!best || sw > best.weight || (sw === best.weight && sr > best.reps)) {
+          best = { weight: sw, reps: sr };
+        }
+      });
+    });
+  });
+  if (!best) return true;
+  return w > best.weight || (w === best.weight && r > best.reps);
+}
+
+// ── 終了・一括保存 ────────────────────────────────────────────────────────────
 
 function finishWorkout() {
   var hasData = session.exercises.some(function(e) {
-    return e.sets.some(function(s) { return s.weight !== '' || s.reps !== ''; });
+    return e.sets.some(function(s) {
+      return (parseFloat(s.weight)||0) > 0 || (parseInt(s.reps)||0) > 0;
+    });
   });
   if (!hasData) { showToast('データを入力してください'); return; }
 
@@ -427,8 +511,8 @@ function finishWorkout() {
       return {
         name: ex.name,
         sets: ex.sets
-          .filter(function(s) { return s.weight !== '' || s.reps !== ''; })
-          .map(function(s) { return { weight: s.weight, reps: s.reps }; })
+          .filter(function(s) { return (parseFloat(s.weight)||0) > 0 || (parseInt(s.reps)||0) > 0; })
+          .map(function(s)    { return { weight: s.weight, reps: s.reps }; })
       };
     }).filter(function(ex) { return ex.sets.length > 0; })
   };
@@ -438,14 +522,32 @@ function finishWorkout() {
   localStorage.setItem('muscle_history', JSON.stringify(history));
   localStorage.removeItem('muscle_draft');
   session = done;
-  renderSummary();
-  showScreen('summary');
+
+  var json = JSON.stringify(done, null, 2);
+
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(json)
+      .then(function()  { renderSummary(true);  showScreen('summary'); })
+      .catch(function() { renderSummary(false); showScreen('summary'); });
+  } else {
+    var ok = false;
+    try {
+      var t = document.createElement('textarea');
+      t.value = json; document.body.appendChild(t); t.select();
+      document.execCommand('copy'); document.body.removeChild(t);
+      ok = true;
+    } catch(e) {}
+    renderSummary(ok);
+    showScreen('summary');
+  }
 }
 
 function confirmBack() {
   var dirty = session && session.exercises &&
     session.exercises.some(function(e) {
-      return e.sets.some(function(s) { return s.weight || s.reps; });
+      return e.sets.some(function(s) {
+        return (parseFloat(s.weight)||0) > 0 || (parseInt(s.reps)||0) > 0;
+      });
     });
   if (dirty && !confirm('ワークアウトを中断しますか？\nデータは一時保存されます。')) return;
   clearInterval(elapsedTick);
@@ -463,7 +565,7 @@ function toggleTimer() {
 function startTimer() {
   clearInterval(tmr.tick);
   tmr.remaining = tmr.base;
-  tmr.running = true;
+  tmr.running   = true;
   updateTimerUI();
   tmr.tick = setInterval(function() {
     tmr.remaining--;
@@ -471,20 +573,29 @@ function startTimer() {
     if (tmr.remaining <= 0) {
       clearInterval(tmr.tick);
       tmr.running = false;
-      if (navigator.vibrate) navigator.vibrate([300, 100, 300]);
       updateTimerUI();
     }
   }, 1000);
 }
 
 function updateTimerUI() {
-  var v = document.getElementById('timer-val');
-  var b = document.getElementById('timer-btn');
+  var v  = document.getElementById('timer-val');
+  var b  = document.getElementById('timer-btn');
+  var rp = document.getElementById('ring-prog');
   if (!v) return;
+
   var m = Math.floor(tmr.remaining / 60);
   var s = tmr.remaining % 60;
   v.textContent = m + ':' + (s < 10 ? '0' : '') + s;
-  v.className = 'timer-val' + (tmr.running ? (tmr.remaining <= 10 ? ' hot' : ' on') : '');
+
+  var hot = tmr.running && tmr.remaining <= 10;
+  v.className = 'timer-val-center' + (tmr.running ? (hot ? ' hot' : ' on') : '');
+
+  if (rp) {
+    var pct = Math.max(0, tmr.remaining / tmr.base);
+    rp.style.strokeDashoffset = String((1 - pct) * RING_CIRC);
+    rp.setAttribute('stroke', tmr.running ? (hot ? '#FF3B30' : '#FF9500') : '#C6C6C8');
+  }
   if (b) {
     b.textContent = tmr.running ? '⏸' : '▶';
     b.className   = 'timer-btn' + (tmr.running ? ' on' : '');
@@ -525,32 +636,44 @@ function overlayClick(e) { if (e.target.id === 'overlay') closePicker(); }
 
 // ── サマリー ──────────────────────────────────────────────────────────────────
 
-function renderSummary() {
+function renderSummary(copied) {
   var total = session.exercises.reduce(function(n, e) { return n + e.sets.length; }, 0);
   document.getElementById('summary-meta').textContent =
     session.date + '　' + session.type + '　' + fmtDur(session.duration || 0) + '　' + total + 'セット';
 
-  var prevSess = history.find(function(s) {
-    return s.type === session.type && s.date !== session.date;
-  });
+  var prevSess    = history.find(function(s) { return s.type === session.type && s.date !== session.date; });
+  var prevHistory = history.slice(1);
 
   var body = clearEl('summary-body');
 
+  if (copied) {
+    var banner = h('div', {cls: 'copy-banner', txt: '✓ クリップボードにコピー済み — ショートカットを実行してください'});
+    body.appendChild(banner);
+  } else {
+    body.appendChild(h('div', {cls: 'copy-fail', txt: 'コピーに失敗しました'}));
+    var expBtn = h('button', {cls: 'btn-export', txt: '📋 JSONを手動コピー'});
+    expBtn.addEventListener('click', exportJSON);
+    body.appendChild(expBtn);
+  }
+
   session.exercises.forEach(function(ex) {
-    var pex = prevSess ? prevSess.exercises.find(function(e) { return e.name === ex.name; }) : null;
+    var pex  = prevSess ? prevSess.exercises.find(function(e) { return e.name === ex.name; }) : null;
     var card = h('div', {cls: 'sum-card'});
     card.appendChild(h('div', {cls: 'sum-ex-name', txt: ex.name}));
 
     ex.sets.forEach(function(s, si) {
-      var ps = pex ? pex.sets[si] : null;
-      var up = ps && (parseFloat(s.weight) > parseFloat(ps.weight) ||
-        (String(s.weight) === String(ps.weight) && parseInt(s.reps) > parseInt(ps.reps)));
+      var ps  = pex ? pex.sets[si] : null;
+      var up  = ps && (parseFloat(s.weight) > parseFloat(ps.weight) ||
+                (String(s.weight) === String(ps.weight) && parseInt(s.reps) > parseInt(ps.reps)));
+      var pr  = checkPR(ex.name, s.weight, s.reps, prevHistory);
       var row = h('div', {cls: 'sum-row'});
       append(row,
-        h('span', {cls: 'sum-set-num', txt: 'Set ' + (si+1)}),
-        h('span', {cls: 'sum-set-data', txt: (s.weight || '—') + ' kg × ' + (s.reps || '—') + ' 回'})
+        h('span', {cls: 'sum-set-num',  txt: 'Set ' + (si+1)}),
+        h('span', {cls: 'sum-set-data', txt: (s.weight||'—') + ' kg × ' + (s.reps||'—') + ' 回'})
       );
-      if (ps) {
+      if (pr) {
+        row.appendChild(h('span', {cls: 'sum-pr', txt: '🏆 PR'}));
+      } else if (ps) {
         row.appendChild(h('span', {
           cls: 'sum-prev' + (up ? ' up' : ''),
           txt: (up ? '↑ ' : '') + '前回 ' + (ps.weight||'—') + '×' + (ps.reps||'—')
@@ -561,11 +684,9 @@ function renderSummary() {
     body.appendChild(card);
   });
 
-  var exportBtn = h('button', {cls: 'btn-export', txt: '📋 JSONをコピー（iCloud同期用）'});
-  exportBtn.addEventListener('click', exportJSON);
   var homeBtn = h('button', {cls: 'btn-to-home', txt: 'ホームへ'});
   homeBtn.addEventListener('click', goHome);
-  append(body, exportBtn, homeBtn);
+  body.appendChild(homeBtn);
 }
 
 function exportJSON() {
@@ -574,11 +695,8 @@ function exportJSON() {
     navigator.clipboard.writeText(json).then(function() { showToast('コピーしました ✓'); });
   } else {
     var t = document.createElement('textarea');
-    t.value = json;
-    document.body.appendChild(t);
-    t.select();
-    document.execCommand('copy');
-    document.body.removeChild(t);
+    t.value = json; document.body.appendChild(t); t.select();
+    document.execCommand('copy'); document.body.removeChild(t);
     showToast('コピーしました ✓');
   }
 }
@@ -601,12 +719,12 @@ function saveDraft() {
 function today() { return new Date().toISOString().split('T')[0]; }
 
 function fmtDur(sec) {
-  var h = Math.floor(sec / 3600);
-  var m = Math.floor((sec % 3600) / 60);
-  var s = sec % 60;
-  if (h) return h + '時間' + m + '分';
-  if (m) return m + '分' + s + '秒';
-  return s + '秒';
+  var hh = Math.floor(sec / 3600);
+  var mm = Math.floor((sec % 3600) / 60);
+  var ss = sec % 60;
+  if (hh) return hh + '時間' + mm + '分';
+  if (mm) return mm + '分' + ss + '秒';
+  return ss + '秒';
 }
 
 function showToast(msg) {
@@ -616,7 +734,6 @@ function showToast(msg) {
   setTimeout(function() { t.classList.remove('show'); }, 2200);
 }
 
-// ── 起動 ──────────────────────────────────────────────────────────────────────
 init();
 if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js'); }
 </script>
