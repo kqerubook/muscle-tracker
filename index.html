@@ -60,7 +60,10 @@
     .history-badge { font-size: 12px; font-weight: 700; padding: 2px 10px; border-radius: 20px; background: var(--blue); color: #fff; }
     .history-meta  { font-size: 13px; color: var(--gray); }
     .history-exs   { font-size: 14px; color: var(--label2); }
+    .history-vol   { font-size: 12px; color: var(--blue); font-weight: 600; margin-top: 5px; }
     .history-empty { text-align: center; color: var(--gray); font-size: 15px; padding: 32px 0; }
+    .btn-export-all { width: 100%; padding: 14px; background: var(--card); border: 1.5px solid var(--sep); border-radius: 14px; color: var(--blue); font-size: 15px; font-weight: 600; cursor: pointer; margin-top: 4px; display: flex; align-items: center; justify-content: center; gap: 6px; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
+    .btn-export-all:active { background: var(--fill); }
 
     /* WORKOUT */
     .workout-nav { position: sticky; top: 0; z-index: 100; background: rgba(242,242,247,.94); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); padding: calc(var(--st) + 10px) 16px 12px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--sep); }
@@ -74,9 +77,11 @@
     .workout-body { padding: 14px 16px; padding-bottom: calc(var(--sb) + 110px); }
 
     .ex-card      { background: var(--card); border-radius: 14px; margin-bottom: 12px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,.07); }
-    .ex-card-head { padding: 13px 16px 10px; display: flex; justify-content: space-between; align-items: baseline; border-bottom: 1px solid var(--sep); }
+    .ex-card-head { padding: 13px 16px 10px; display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 1px solid var(--sep); }
+    .ex-name-wrap { display: flex; flex-direction: column; gap: 3px; }
     .ex-name      { font-size: 16px; font-weight: 600; }
-    .ex-best-lbl  { font-size: 12px; color: var(--blue); font-weight: 600; max-width: 55%; text-align: right; }
+    .ex-prev      { font-size: 11px; color: var(--gray); }
+    .ex-best-lbl  { font-size: 12px; color: var(--blue); font-weight: 600; max-width: 50%; text-align: right; flex-shrink: 0; }
 
     /* STEPPER */
     .set-row  { display: flex; align-items: center; gap: 6px; padding: 8px 14px; border-top: 1px solid var(--sep); }
@@ -156,7 +161,7 @@
   <div class="home-header">
     <div style="display:flex;justify-content:space-between;align-items:baseline;">
       <div class="home-title">筋トレ</div>
-      <div style="font-size:11px;color:var(--sep);">v1.0.7</div>
+      <div style="font-size:11px;color:var(--sep);">v1.0.8</div>
     </div>
     <div id="home-date" class="home-date"></div>
   </div>
@@ -297,6 +302,8 @@ function renderHome() {
   wkHistory.slice(0, 6).forEach(function(s) {
     var exNames = s.exercises.map(function(e) { return e.name; }).join(' · ');
     var dur = s.duration ? ' · ' + fmtDur(s.duration) : '';
+    var vol = calcVolume(s);
+    var volStr = vol > 0 ? '総重量 ' + (vol >= 1000 ? (vol / 1000).toFixed(1) + 't' : vol + 'kg') : '';
     var card = h('div', {cls: 'history-card'});
     var top  = h('div', {cls: 'history-top'});
     append(top,
@@ -304,10 +311,14 @@ function renderHome() {
       h('span', {cls: 'history-meta',  txt: s.date + dur})
     );
     append(card, top, h('div', {cls: 'history-exs', txt: exNames}));
+    if (volStr) card.appendChild(h('div', {cls: 'history-vol', txt: volStr}));
     card.style.cursor = 'pointer';
     card.addEventListener('click', (function(sess) { return function() { showHistoryDetail(sess); }; })(s));
     list.appendChild(card);
   });
+  var expBtn = h('button', {cls: 'btn-export-all', txt: '📤 全記録を書き出し'});
+  expBtn.addEventListener('click', exportAllData);
+  list.appendChild(expBtn);
 }
 
 // ── ワークアウト ──────────────────────────────────────────────────────────────
@@ -343,13 +354,19 @@ function renderWorkout() {
 function buildExCard(ex, ei) {
   var best    = bestRecord(ex.name);
   var bestTxt = (best && best.weight > 0) ? 'ベスト ' + best.weight + 'kg × ' + best.reps + '回' : '';
+  var prev    = lastSessionFor(ex.name);
+  var prevTxt = '';
+  if (prev && prev.set && prev.set.weight > 0) {
+    var dStr = prev.days === 0 ? '今日' : prev.days === 1 ? '昨日' : prev.days + '日前';
+    prevTxt = '前回 ' + dStr + ' · ' + prev.set.weight + 'kg × ' + prev.set.reps + '回';
+  }
 
   var card     = h('div', {cls: 'ex-card'});
   var cardHead = h('div', {cls: 'ex-card-head'});
-  append(cardHead,
-    h('span', {cls: 'ex-name',     txt: ex.name}),
-    h('span', {cls: 'ex-best-lbl', txt: bestTxt})
-  );
+  var nameWrap = h('div', {cls: 'ex-name-wrap'});
+  nameWrap.appendChild(h('span', {cls: 'ex-name', txt: ex.name}));
+  if (prevTxt) nameWrap.appendChild(h('span', {cls: 'ex-prev', txt: prevTxt}));
+  append(cardHead, nameWrap, h('span', {cls: 'ex-best-lbl', txt: bestTxt}));
 
   var setsBody = h('div', {cls: 'sets-body'});
   ex.sets.forEach(function(s, si) {
@@ -469,6 +486,47 @@ function addExercise(name) {
   var def = lastUsedFor(name);
   session.exercises.push({ name: name, sets: [{ weight: def.weight, reps: def.reps, done: false }] });
   renderWorkout();
+}
+
+// ── ボリューム・前回情報・書き出し ─────────────────────────────────────────────
+
+function calcVolume(sess) {
+  var total = 0;
+  (sess.exercises || []).forEach(function(ex) {
+    (ex.sets || []).forEach(function(s) {
+      total += (parseFloat(s.weight) || 0) * (parseInt(s.reps) || 0);
+    });
+  });
+  return total;
+}
+
+function lastSessionFor(name) {
+  for (var i = 0; i < wkHistory.length; i++) {
+    var sess = wkHistory[i];
+    if (!sess || !sess.exercises) continue;
+    var ex = sess.exercises.find(function(e) { return e.name === name; });
+    if (ex && ex.sets && ex.sets.length > 0) {
+      var days = Math.floor((Date.now() - new Date(sess.date).getTime()) / 86400000);
+      var maxSet = ex.sets.reduce(function(best, s) {
+        var w = parseFloat(s.weight) || 0;
+        return (!best || w > best.weight) ? { weight: w, reps: parseInt(s.reps) || 0 } : best;
+      }, null);
+      return { days: days, set: maxSet };
+    }
+  }
+  return null;
+}
+
+function exportAllData() {
+  var json = JSON.stringify(wkHistory, null, 2);
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(json).then(function() { showToast('全記録をコピーしました ✓'); });
+  } else {
+    var t = document.createElement('textarea');
+    t.value = json; document.body.appendChild(t); t.select();
+    document.execCommand('copy'); document.body.removeChild(t);
+    showToast('全記録をコピーしました ✓');
+  }
 }
 
 // ── デフォルト値（前回セッション） ────────────────────────────────────────────
