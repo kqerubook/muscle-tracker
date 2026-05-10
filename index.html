@@ -155,7 +155,7 @@
   <div class="home-header">
     <div style="display:flex;justify-content:space-between;align-items:baseline;">
       <div class="home-title">筋トレ</div>
-      <div style="font-size:11px;color:var(--sep);">v1.0.3</div>
+      <div style="font-size:11px;color:var(--sep);">v1.0.4</div>
     </div>
     <div id="home-date" class="home-date"></div>
   </div>
@@ -459,6 +459,7 @@ function addExercise(name) {
 function bestRecord(name) {
   var best = null;
   history.forEach(function(sess) {
+    if (!sess || !sess.exercises) return;
     sess.exercises.forEach(function(ex) {
       if (ex.name !== name) return;
       ex.sets.forEach(function(s) {
@@ -479,6 +480,7 @@ function checkPR(name, weight, reps, prevHistory) {
   if (w === 0) return false;
   var best = null;
   prevHistory.forEach(function(sess) {
+    if (!sess || !sess.exercises) return;
     sess.exercises.forEach(function(ex) {
       if (ex.name !== name) return;
       ex.sets.forEach(function(s) {
