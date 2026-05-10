@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="筋トレ">
+  <link rel="manifest" href="manifest.json">
+  <title>筋トレログ</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+    :root {
+      --bg:     #F2F2F7;
+      --card:   #FFFFFF;
+      --blue:   #007AFF;
+      --green:  #34C759;
+      --red:    #FF3B30;
+      --orange: #FF9500;
+      --gray:   #8E8E93;
+      --sep:    #C6C6C8;
+      --label:  #000000;
+      --label2: #3C3C43;
+      --fill:   #F2F2F7;
+      --st: env(safe-area-inset-top, 0px);
+      --sb: env(safe-area-inset-bottom, 0px);
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+      background: var(--bg);
+      color: var(--label);
+      min-height: 100vh;
+      overflow: hidden;
+    }
+
+    .screen { display: none; position: fixed; inset: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+    .screen.active { display: block; }
+
+    /* HOME */
+    .home-header { padding: calc(var(--st) + 20px) 20px 16px; background: var(--card); border-bottom: 1px solid var(--sep); }
+    .home-title  { font-size: 34px; font-weight: 700; letter-spacing: -0.5px; }
+    .home-date   { font-size: 15px; color: var(--gray); margin-top: 2px; }
+
+    .section-label { font-size: 13px; font-weight: 600; color: var(--gray); text-transform: uppercase; letter-spacing: 0.5px; padding: 20px 20px 8px; }
+
+    .type-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; padding: 0 16px; }
+    .type-btn  { background: var(--card); border: none; border-radius: 14px; padding: 18px 6px; cursor: pointer; text-align: center; box-shadow: 0 1px 4px rgba(0,0,0,.08); transition: transform .1s; }
+    .type-btn:active { transform: scale(.95); background: #E5E5EA; }
+    .type-icon  { font-size: 30px; margin-bottom: 6px; }
+    .type-label { font-size: 16px; font-weight: 700; }
+    .type-sub   { font-size: 11px; color: var(--gray); margin-top: 2px; }
+
+    .history-list  { padding: 0 16px; padding-bottom: calc(var(--sb) + 32px); }
+    .history-card  { background: var(--card); border-radius: 12px; padding: 13px 16px; margin-bottom: 10px; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
+    .history-top   { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
+    .history-badge { font-size: 12px; font-weight: 700; padding: 2px 10px; border-radius: 20px; background: var(--blue); color: #fff; }
+    .history-meta  { font-size: 13px; color: var(--gray); }
+    .history-exs   { font-size: 14px; color: var(--label2); }
+    .history-empty { text-align: center; color: var(--gray); font-size: 15px; padding: 32px 0; }
+
+    /* WORKOUT */
+    .workout-nav { position: sticky; top: 0; z-index: 100; background: rgba(242,242,247,.94); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); padding: calc(var(--st) + 10px) 16px 12px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--sep); }
+    .nav-back    { background: none; border: none; font-size: 17px; color: var(--blue); cursor: pointer; padding: 4px 0; }
+    .nav-center  { text-align: center; }
+    .nav-title   { font-size: 17px; font-weight: 600; }
+    .nav-elapsed { font-size: 12px; color: var(--gray); margin-top: 1px; }
+    .btn-finish  { background: var(--blue); color: #fff; border: none; border-radius: 20px; padding: 7px 18px; font-size: 15px; font-weight: 600; cursor: pointer; }
+    .btn-finish:active { opacity: .75; }
+
+    .workout-body { padding: 14px 16px; padding-bottom: calc(var(--sb) + 110px); }
+
+    .ex-card      { background: var(--card); border-radius: 14px; margin-bottom: 12px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,.07); }
+    .ex-card-head { padding: 13px 16px 10px; display: flex; justify-content: space-between; align-items: baseline; border-bottom: 1px solid var(--sep); }
+    .ex-name      { font-size: 16px; font-weight: 600; }
+    .ex-prev-lbl  { font-size: 12px; color: var(--gray); max-width: 55%; text-align: right; }
+
+    .sets-head { display: grid; grid-template-columns: 30px 1fr 1fr 42px; gap: 6px; padding: 7px 16px 4px; }
+    .sets-head span { font-size: 12px; font-weight: 600; color: var(--gray); text-align: center; }
+    .sets-head span:first-child { text-align: left; }
+
+    .set-row   { display: grid; grid-template-columns: 30px 1fr 1fr 42px; align-items: center; gap: 6px; padding: 6px 16px; border-top: 1px solid var(--sep); }
+    .set-num   { font-size: 15px; font-weight: 600; color: var(--gray); }
+    .set-input { background: var(--fill); border: none; border-radius: 8px; padding: 9px 8px; font-size: 16px; font-weight: 500; text-align: center; width: 100%; font-family: inherit; color: var(--label); outline: none; -webkit-appearance: none; }
+    .set-input:focus { background: #E8E8ED; }
+    .set-input::placeholder { color: var(--sep); font-weight: 400; }
+
+    .done-btn     { width: 34px; height: 34px; border-radius: 50%; border: 2px solid var(--sep); background: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 15px; margin: 0 auto; transition: all .15s; }
+    .done-btn.done { background: var(--green); border-color: var(--green); color: #fff; }
+    .done-btn:active { transform: scale(.88); }
+
+    .add-set-btn { width: 100%; padding: 12px; border: none; background: none; color: var(--blue); font-size: 15px; font-weight: 500; cursor: pointer; border-top: 1px solid var(--sep); display: flex; align-items: center; justify-content: center; gap: 4px; }
+    .add-ex-btn  { width: 100%; padding: 16px; background: var(--card); border: none; border-radius: 14px; color: var(--blue); font-size: 16px; font-weight: 500; cursor: pointer; box-shadow: 0 1px 4px rgba(0,0,0,.07); display: flex; align-items: center; justify-content: center; gap: 6px; }
+
+    .timer-bar     { position: fixed; bottom: 0; left: 0; right: 0; padding: 10px 16px calc(var(--sb) + 10px); background: rgba(242,242,247,.96); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-top: 1px solid var(--sep); display: flex; align-items: center; gap: 10px; }
+    .timer-display { flex: 1; background: var(--card); border-radius: 12px; padding: 11px 16px; display: flex; align-items: center; justify-content: space-between; }
+    .timer-lbl { font-size: 13px; color: var(--gray); }
+    .timer-val { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+    .timer-val.on  { color: var(--green); }
+    .timer-val.hot { color: var(--red); }
+    .timer-btn { width: 50px; height: 50px; border-radius: 50%; background: var(--blue); border: none; color: #fff; font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .timer-btn:active { transform: scale(.91); }
+    .timer-btn.on { background: var(--orange); }
+
+    /* PICKER */
+    .overlay { position: fixed; inset: 0; background: rgba(0,0,0,.35); z-index: 200; display: none; align-items: flex-end; }
+    .overlay.open { display: flex; }
+    .sheet        { background: var(--bg); border-radius: 20px 20px 0 0; width: 100%; max-height: 68vh; overflow-y: auto; padding-bottom: calc(var(--sb) + 16px); }
+    .sheet-handle { width: 36px; height: 4px; background: var(--sep); border-radius: 2px; margin: 10px auto 4px; }
+    .sheet-title  { font-size: 17px; font-weight: 600; text-align: center; padding: 4px 16px 14px; }
+    .picker-group      { font-size: 13px; font-weight: 600; color: var(--gray); padding: 6px 20px 4px; }
+    .picker-group-list { background: var(--card); border-radius: 12px; margin: 0 12px 10px; overflow: hidden; }
+    .picker-item  { padding: 14px 18px; font-size: 16px; border-bottom: 1px solid var(--sep); cursor: pointer; }
+    .picker-item:last-child { border-bottom: none; }
+    .picker-item:active { background: var(--fill); }
+
+    /* SUMMARY */
+    .summary-hero  { padding: calc(var(--st) + 28px) 20px 20px; text-align: center; }
+    .summary-emoji { font-size: 60px; margin-bottom: 8px; }
+    .summary-ttl   { font-size: 28px; font-weight: 700; }
+    .summary-meta  { font-size: 15px; color: var(--gray); margin-top: 4px; }
+    .summary-body  { padding: 0 16px; padding-bottom: calc(var(--sb) + 28px); }
+
+    .sum-card    { background: var(--card); border-radius: 12px; margin-bottom: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
+    .sum-ex-name { font-size: 15px; font-weight: 600; padding: 12px 16px; border-bottom: 1px solid var(--sep); }
+    .sum-row     { display: flex; align-items: center; padding: 10px 16px; gap: 10px; border-top: 1px solid var(--sep); }
+    .sum-set-num  { font-size: 14px; color: var(--gray); width: 44px; }
+    .sum-set-data { font-size: 15px; font-weight: 500; }
+    .sum-prev     { font-size: 13px; color: var(--gray); margin-left: auto; }
+    .sum-prev.up  { color: var(--green); font-weight: 600; }
+
+    .btn-export  { width: 100%; padding: 16px; background: var(--blue); color: #fff; border: none; border-radius: 13px; font-size: 16px; font-weight: 600; cursor: pointer; margin-bottom: 10px; }
+    .btn-export:active { opacity: .78; }
+    .btn-to-home { width: 100%; padding: 16px; background: var(--card); color: var(--blue); border: none; border-radius: 13px; font-size: 16px; font-weight: 600; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
+    .btn-to-home:active { background: var(--fill); }
+
+    /* TOAST */
+    .toast { position: fixed; bottom: calc(var(--sb) + 90px); left: 50%; transform: translateX(-50%) translateY(16px); background: rgba(40,40,40,.88); color: #fff; padding: 10px 22px; border-radius: 22px; font-size: 14px; opacity: 0; transition: all .28s; pointer-events: none; white-space: nowrap; z-index: 400; }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  </style>
+</head>
+<body>
+
+<!-- HOME -->
+<div id="screen-home" class="screen active">
+  <div class="home-header">
+    <div class="home-title">筋トレ</div>
+    <div id="home-date" class="home-date"></div>
+  </div>
+  <div class="section-label">今日のワークアウト</div>
+  <div class="type-grid">
+    <button class="type-btn" onclick="startWorkout('Push')">
+      <div class="type-icon">💪</div>
+      <div class="type-label">Push</div>
+      <div class="type-sub">胸・肩・三頭</div>
+    </button>
+    <button class="type-btn" onclick="startWorkout('Pull')">
+      <div class="type-icon">🏋️</div>
+      <div class="type-label">Pull</div>
+      <div class="type-sub">背中・二頭</div>
+    </button>
+    <button class="type-btn" onclick="startWorkout('Legs')">
+      <div class="type-icon">🦵</div>
+      <div class="type-label">Legs</div>
+      <div class="type-sub">脚・臀部</div>
+    </button>
+  </div>
+  <div class="section-label">最近の記録</div>
+  <div id="history-list" class="history-list"></div>
+</div>
+
+<!-- WORKOUT -->
+<div id="screen-workout" class="screen">
+  <div class="workout-nav">
+    <button class="nav-back" onclick="confirmBack()">‹ 戻る</button>
+    <div class="nav-center">
+      <div id="nav-type" class="nav-title"></div>
+      <div id="nav-elapsed" class="nav-elapsed">0:00</div>
+    </div>
+    <button class="btn-finish" onclick="finishWorkout()">終了</button>
+  </div>
+  <div id="workout-body" class="workout-body"></div>
+  <div class="timer-bar">
+    <div class="timer-display">
+      <span class="timer-lbl">インターバル</span>
+      <span id="timer-val" class="timer-val">1:00</span>
+    </div>
+    <button id="timer-btn" class="timer-btn" onclick="toggleTimer()">▶</button>
+  </div>
+</div>
+
+<!-- SUMMARY -->
+<div id="screen-summary" class="screen">
+  <div class="summary-hero">
+    <div class="summary-emoji">🏆</div>
+    <div class="summary-ttl">完了！</div>
+    <div id="summary-meta" class="summary-meta"></div>
+  </div>
+  <div id="summary-body" class="summary-body"></div>
+</div>
+
+<!-- Picker -->
+<div id="overlay" class="overlay" onclick="overlayClick(event)">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">種目を追加</div>
+    <div id="picker-list"></div>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script>
+// ── 定数 ─────────────────────────────────────────────────────────────────────
+
+const EXERCISES = {
+  Push: ['ベンチプレス','インクラインダンベルプレス','ショルダープレス','サイドレイズ','ケーブルプッシュダウン'],
+  Pull: ['ラットプルダウン','チンアップ','ベントオーバーローイング','シーテッドロウ','フェイスプル','バーベルカール'],
+  Legs: ['スクワット','レッグプレス','ルーマニアンデッドリフト','レッグカール','カーフレイズ']
+};
+
+// ── 状態 ──────────────────────────────────────────────────────────────────────
+
+let session  = null;
+let history  = [];
+let elapsedTick = null;
+let tmr = { running: false, remaining: 60, base: 60, tick: null };
+
+// ── DOMヘルパー ───────────────────────────────────────────────────────────────
+
+function h(tag, props) {
+  const el = document.createElement(tag);
+  if (props) {
+    Object.entries(props).forEach(function(entry) {
+      var k = entry[0], v = entry[1];
+      if (k === 'cls')  { el.className = v; }
+      else if (k === 'txt')  { el.textContent = v; }
+      else if (k === 'val')  { el.value = v; }
+      else if (k === 'ph')   { el.placeholder = v; }
+      else if (k[0] === '$') { el.addEventListener(k.slice(1), v); }
+      else { el.setAttribute(k, v); }
+    });
+  }
+  return el;
+}
+
+function append(parent) {
+  var kids = Array.prototype.slice.call(arguments, 1);
+  kids.forEach(function(c) {
+    if (c != null) parent.appendChild(typeof c === 'string' ? document.createTextNode(c) : c);
+  });
+  return parent;
+}
+
+function clearEl(id) {
+  var el = document.getElementById(id);
+  while (el.firstChild) el.removeChild(el.firstChild);
+  return el;
+}
+
+// ── 起動 ──────────────────────────────────────────────────────────────────────
+
+function init() {
+  try { history = JSON.parse(localStorage.getItem('muscle_history') || '[]'); } catch(e) { history = []; }
+  try { var d = localStorage.getItem('muscle_draft'); if (d) session = JSON.parse(d); } catch(e) {}
+  renderHome();
+}
+
+// ── ホーム ────────────────────────────────────────────────────────────────────
+
+function renderHome() {
+  var d = new Date();
+  var w = ['日','月','火','水','木','金','土'][d.getDay()];
+  document.getElementById('home-date').textContent =
+    d.getFullYear() + '年' + (d.getMonth()+1) + '月' + d.getDate() + '日（' + w + '）';
+
+  var list = clearEl('history-list');
+
+  if (!history.length) {
+    list.appendChild(h('div', {cls: 'history-empty', txt: 'まだ記録がありません'}));
+    return;
+  }
+
+  history.slice(0, 6).forEach(function(s) {
+    var exNames = s.exercises.map(function(e) { return e.name; }).join(' · ');
+    var dur = s.duration ? ' · ' + fmtDur(s.duration) : '';
+    var card = h('div', {cls: 'history-card'});
+    var top  = h('div', {cls: 'history-top'});
+    append(top,
+      h('span', {cls: 'history-badge', txt: s.type}),
+      h('span', {cls: 'history-meta', txt: s.date + dur})
+    );
+    append(card, top, h('div', {cls: 'history-exs', txt: exNames}));
+    list.appendChild(card);
+  });
+}
+
+// ── ワークアウト ──────────────────────────────────────────────────────────────
+
+function startWorkout(type) {
+  if (!session || session.type !== type || session.duration) {
+    session = { date: today(), type: type, startTime: Date.now(), exercises: [] };
+    addExercise(EXERCISES[type][0]);
+  }
+  document.getElementById('nav-type').textContent = type;
+  showScreen('workout');
+  startElapsed();
+  renderWorkout();
+}
+
+function renderWorkout() {
+  saveDraft();
+  var body = clearEl('workout-body');
+  session.exercises.forEach(function(ex, ei) {
+    body.appendChild(buildExCard(ex, ei));
+  });
+  body.appendChild(h('button', {cls: 'add-ex-btn', txt: '＋ 種目を追加', $click: openPicker}));
+}
+
+function buildExCard(ex, ei) {
+  var prev = prevSets(ex.name, session.type);
+  var prevParts = prev ? prev.slice(0,3).map(function(s) {
+    return (s.weight || '—') + '×' + (s.reps || '—');
+  }).join(' / ') : '';
+
+  var card     = h('div', {cls: 'ex-card'});
+  var cardHead = h('div', {cls: 'ex-card-head'});
+  append(cardHead,
+    h('span', {cls: 'ex-name', txt: ex.name}),
+    h('span', {cls: 'ex-prev-lbl', txt: prevParts ? '前回 ' + prevParts : ''})
+  );
+
+  var setsHead = h('div', {cls: 'sets-head'});
+  append(setsHead,
+    h('span', {txt: 'SET'}), h('span', {txt: '重さ kg'}),
+    h('span', {txt: '回数'}), h('span', {})
+  );
+
+  var setsBody = h('div', {cls: 'sets-body'});
+  ex.sets.forEach(function(s, si) {
+    setsBody.appendChild(buildSetRow(s, ei, si, prev));
+  });
+
+  var addSetBtn = h('button', {cls: 'add-set-btn'});
+  addSetBtn.textContent = '＋ セット';
+  addSetBtn.addEventListener('click', (function(i) { return function() { addSet(i); }; })(ei));
+
+  append(card, cardHead, setsHead, setsBody, addSetBtn);
+  return card;
+}
+
+function buildSetRow(s, ei, si, prev) {
+  var pw = (prev && prev[si] && prev[si].weight != null) ? String(prev[si].weight) : '';
+  var pr = (prev && prev[si] && prev[si].reps   != null) ? String(prev[si].reps)   : '';
+
+  var wInput = h('input', {cls: 'set-input', type: 'number', inputmode: 'decimal', min: '0', step: '0.5', ph: pw});
+  if (s.weight !== '') wInput.value = s.weight;
+  wInput.addEventListener('change', (function(i,j) {
+    return function(e) { upd(i, j, 'weight', e.target.value); };
+  })(ei, si));
+
+  var rInput = h('input', {cls: 'set-input', type: 'number', inputmode: 'numeric', min: '0', ph: pr});
+  if (s.reps !== '') rInput.value = s.reps;
+  rInput.addEventListener('change', (function(i,j) {
+    return function(e) { upd(i, j, 'reps', e.target.value); };
+  })(ei, si));
+
+  var doneBtn = h('button', {cls: s.done ? 'done-btn done' : 'done-btn'});
+  doneBtn.textContent = '✓';
+  doneBtn.addEventListener('click', (function(i,j) {
+    return function() { toggleDone(i, j); };
+  })(ei, si));
+
+  var row = h('div', {cls: 'set-row'});
+  append(row, h('span', {cls: 'set-num', txt: String(si + 1)}), wInput, rInput, doneBtn);
+  return row;
+}
+
+function upd(ei, si, field, val) {
+  session.exercises[ei].sets[si][field] = val === '' ? '' : (parseFloat(val) || val);
+  saveDraft();
+}
+
+function toggleDone(ei, si) {
+  session.exercises[ei].sets[si].done = !session.exercises[ei].sets[si].done;
+  if (session.exercises[ei].sets[si].done) startTimer();
+  renderWorkout();
+}
+
+function addSet(ei) {
+  var sets = session.exercises[ei].sets;
+  var last = sets[sets.length - 1] || {};
+  sets.push({ weight: last.weight || '', reps: last.reps || '', done: false });
+  renderWorkout();
+}
+
+function addExercise(name) {
+  if (session.exercises.some(function(e) { return e.name === name; })) {
+    showToast(name + ' は追加済みです'); return;
+  }
+  session.exercises.push({ name: name, sets: [{ weight: '', reps: '', done: false }] });
+  renderWorkout();
+}
+
+function prevSets(name, type) {
+  var prev = history.find(function(s) { return s.type === type; });
+  if (!prev) return null;
+  var ex = prev.exercises.find(function(e) { return e.name === name; });
+  return ex ? ex.sets : null;
+}
+
+function finishWorkout() {
+  var hasData = session.exercises.some(function(e) {
+    return e.sets.some(function(s) { return s.weight !== '' || s.reps !== ''; });
+  });
+  if (!hasData) { showToast('データを入力してください'); return; }
+
+  clearInterval(elapsedTick);
+  clearInterval(tmr.tick);
+  tmr.running = false;
+
+  var done = {
+    date: session.date, type: session.type,
+    duration: Math.floor((Date.now() - session.startTime) / 1000),
+    exercises: session.exercises.map(function(ex) {
+      return {
+        name: ex.name,
+        sets: ex.sets
+          .filter(function(s) { return s.weight !== '' || s.reps !== ''; })
+          .map(function(s) { return { weight: s.weight, reps: s.reps }; })
+      };
+    }).filter(function(ex) { return ex.sets.length > 0; })
+  };
+
+  history.unshift(done);
+  if (history.length > 200) history = history.slice(0, 200);
+  localStorage.setItem('muscle_history', JSON.stringify(history));
+  localStorage.removeItem('muscle_draft');
+  session = done;
+  renderSummary();
+  showScreen('summary');
+}
+
+function confirmBack() {
+  var dirty = session && session.exercises &&
+    session.exercises.some(function(e) {
+      return e.sets.some(function(s) { return s.weight || s.reps; });
+    });
+  if (dirty && !confirm('ワークアウトを中断しますか？\nデータは一時保存されます。')) return;
+  clearInterval(elapsedTick);
+  showScreen('home');
+  renderHome();
+}
+
+// ── タイマー ──────────────────────────────────────────────────────────────────
+
+function toggleTimer() {
+  if (tmr.running) { clearInterval(tmr.tick); tmr.running = false; updateTimerUI(); }
+  else { startTimer(); }
+}
+
+function startTimer() {
+  clearInterval(tmr.tick);
+  tmr.remaining = tmr.base;
+  tmr.running = true;
+  updateTimerUI();
+  tmr.tick = setInterval(function() {
+    tmr.remaining--;
+    updateTimerUI();
+    if (tmr.remaining <= 0) {
+      clearInterval(tmr.tick);
+      tmr.running = false;
+      if (navigator.vibrate) navigator.vibrate([300, 100, 300]);
+      updateTimerUI();
+    }
+  }, 1000);
+}
+
+function updateTimerUI() {
+  var v = document.getElementById('timer-val');
+  var b = document.getElementById('timer-btn');
+  if (!v) return;
+  var m = Math.floor(tmr.remaining / 60);
+  var s = tmr.remaining % 60;
+  v.textContent = m + ':' + (s < 10 ? '0' : '') + s;
+  v.className = 'timer-val' + (tmr.running ? (tmr.remaining <= 10 ? ' hot' : ' on') : '');
+  if (b) {
+    b.textContent = tmr.running ? '⏸' : '▶';
+    b.className   = 'timer-btn' + (tmr.running ? ' on' : '');
+  }
+}
+
+function startElapsed() {
+  clearInterval(elapsedTick);
+  elapsedTick = setInterval(function() {
+    if (!session) return;
+    var el = document.getElementById('nav-elapsed');
+    if (el) el.textContent = fmtDur(Math.floor((Date.now() - session.startTime) / 1000));
+  }, 1000);
+}
+
+// ── ピッカー ──────────────────────────────────────────────────────────────────
+
+function openPicker() {
+  var list = clearEl('picker-list');
+  Object.entries(EXERCISES).forEach(function(entry) {
+    var group = entry[0], exs = entry[1];
+    list.appendChild(h('div', {cls: 'picker-group', txt: group}));
+    var groupList = h('div', {cls: 'picker-group-list'});
+    exs.forEach(function(name) {
+      var item = h('div', {cls: 'picker-item', txt: name});
+      item.addEventListener('click', (function(n) {
+        return function() { addExercise(n); closePicker(); };
+      })(name));
+      groupList.appendChild(item);
+    });
+    list.appendChild(groupList);
+  });
+  document.getElementById('overlay').classList.add('open');
+}
+
+function closePicker()   { document.getElementById('overlay').classList.remove('open'); }
+function overlayClick(e) { if (e.target.id === 'overlay') closePicker(); }
+
+// ── サマリー ──────────────────────────────────────────────────────────────────
+
+function renderSummary() {
+  var total = session.exercises.reduce(function(n, e) { return n + e.sets.length; }, 0);
+  document.getElementById('summary-meta').textContent =
+    session.date + '　' + session.type + '　' + fmtDur(session.duration || 0) + '　' + total + 'セット';
+
+  var prevSess = history.find(function(s) {
+    return s.type === session.type && s.date !== session.date;
+  });
+
+  var body = clearEl('summary-body');
+
+  session.exercises.forEach(function(ex) {
+    var pex = prevSess ? prevSess.exercises.find(function(e) { return e.name === ex.name; }) : null;
+    var card = h('div', {cls: 'sum-card'});
+    card.appendChild(h('div', {cls: 'sum-ex-name', txt: ex.name}));
+
+    ex.sets.forEach(function(s, si) {
+      var ps = pex ? pex.sets[si] : null;
+      var up = ps && (parseFloat(s.weight) > parseFloat(ps.weight) ||
+        (String(s.weight) === String(ps.weight) && parseInt(s.reps) > parseInt(ps.reps)));
+      var row = h('div', {cls: 'sum-row'});
+      append(row,
+        h('span', {cls: 'sum-set-num', txt: 'Set ' + (si+1)}),
+        h('span', {cls: 'sum-set-data', txt: (s.weight || '—') + ' kg × ' + (s.reps || '—') + ' 回'})
+      );
+      if (ps) {
+        row.appendChild(h('span', {
+          cls: 'sum-prev' + (up ? ' up' : ''),
+          txt: (up ? '↑ ' : '') + '前回 ' + (ps.weight||'—') + '×' + (ps.reps||'—')
+        }));
+      }
+      card.appendChild(row);
+    });
+    body.appendChild(card);
+  });
+
+  var exportBtn = h('button', {cls: 'btn-export', txt: '📋 JSONをコピー（iCloud同期用）'});
+  exportBtn.addEventListener('click', exportJSON);
+  var homeBtn = h('button', {cls: 'btn-to-home', txt: 'ホームへ'});
+  homeBtn.addEventListener('click', goHome);
+  append(body, exportBtn, homeBtn);
+}
+
+function exportJSON() {
+  var json = JSON.stringify(session, null, 2);
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(json).then(function() { showToast('コピーしました ✓'); });
+  } else {
+    var t = document.createElement('textarea');
+    t.value = json;
+    document.body.appendChild(t);
+    t.select();
+    document.execCommand('copy');
+    document.body.removeChild(t);
+    showToast('コピーしました ✓');
+  }
+}
+
+function goHome() { session = null; showScreen('home'); renderHome(); }
+
+// ── ユーティリティ ────────────────────────────────────────────────────────────
+
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(function(s) { s.classList.remove('active'); });
+  document.getElementById('screen-' + name).classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+function saveDraft() {
+  if (session && !session.duration)
+    localStorage.setItem('muscle_draft', JSON.stringify(session));
+}
+
+function today() { return new Date().toISOString().split('T')[0]; }
+
+function fmtDur(sec) {
+  var h = Math.floor(sec / 3600);
+  var m = Math.floor((sec % 3600) / 60);
+  var s = sec % 60;
+  if (h) return h + '時間' + m + '分';
+  if (m) return m + '分' + s + '秒';
+  return s + '秒';
+}
+
+function showToast(msg) {
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(function() { t.classList.remove('show'); }, 2200);
+}
+
+// ── 起動 ──────────────────────────────────────────────────────────────────────
+init();
+if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js'); }
+</script>
+</body>
+</html>

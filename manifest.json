@@ -1,0 +1,9 @@
+{
+  "name": "筋トレログ",
+  "short_name": "筋トレ",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#F2F2F7",
+  "theme_color": "#F2F2F7",
+  "orientation": "portrait"
+}
