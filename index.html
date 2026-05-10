@@ -156,7 +156,7 @@
   <div class="home-header">
     <div style="display:flex;justify-content:space-between;align-items:baseline;">
       <div class="home-title">筋トレ</div>
-      <div style="font-size:11px;color:var(--sep);">v1.0.6</div>
+      <div style="font-size:11px;color:var(--sep);">v1.0.7</div>
     </div>
     <div id="home-date" class="home-date"></div>
   </div>
@@ -304,6 +304,8 @@ function renderHome() {
       h('span', {cls: 'history-meta',  txt: s.date + dur})
     );
     append(card, top, h('div', {cls: 'history-exs', txt: exNames}));
+    card.style.cursor = 'pointer';
+    card.addEventListener('click', (function(sess) { return function() { showHistoryDetail(sess); }; })(s));
     list.appendChild(card);
   });
 }
@@ -380,17 +382,22 @@ function buildStepper(initVal, step, unit, min, max, onChange) {
     onChange(val);
   }
 
+  // desktop: click fires normally
   minus.addEventListener('click', function() { setVal(val - step); });
   plus.addEventListener('click',  function() { setVal(val + step); });
 
-  var holdId = null;
-  function startHold(fn) { holdId = setInterval(fn, 160); }
-  function stopHold() { if (holdId) { clearInterval(holdId); holdId = null; } }
+  // iOS/touch: preventDefault kills click, so fire fn immediately on touchstart
+  var holdTO = null, holdIV = null;
+  function startHold(fn) {
+    fn();
+    holdTO = setTimeout(function() { holdIV = setInterval(fn, 160); }, 400);
+  }
+  function stopHold() { clearTimeout(holdTO); clearInterval(holdIV); holdTO = holdIV = null; }
 
-  minus.addEventListener('touchstart',  function(e) { e.preventDefault(); startHold(function() { setVal(val - step); }); });
+  minus.addEventListener('touchstart',  function(e) { e.preventDefault(); startHold(function() { setVal(val - step); }); }, {passive: false});
   minus.addEventListener('touchend',    stopHold);
   minus.addEventListener('touchcancel', stopHold);
-  plus.addEventListener('touchstart',   function(e) { e.preventDefault(); startHold(function() { setVal(val + step); }); });
+  plus.addEventListener('touchstart',   function(e) { e.preventDefault(); startHold(function() { setVal(val + step); }); }, {passive: false});
   plus.addEventListener('touchend',     stopHold);
   plus.addEventListener('touchcancel',  stopHold);
 
@@ -451,7 +458,7 @@ function toggleDone(ei, si) {
 function addSet(ei) {
   var sets = session.exercises[ei].sets;
   var last = sets[sets.length - 1] || {};
-  sets.push({ weight: last.weight || 0, reps: last.reps || 0, done: false });
+  sets.push({ weight: last.weight || 0, reps: last.reps || 10, done: false });
   renderWorkout();
 }
 
@@ -459,8 +466,25 @@ function addExercise(name) {
   if (session.exercises.some(function(e) { return e.name === name; })) {
     showToast(name + ' は追加済みです'); return;
   }
-  session.exercises.push({ name: name, sets: [{ weight: 0, reps: 0, done: false }] });
+  var def = lastUsedFor(name);
+  session.exercises.push({ name: name, sets: [{ weight: def.weight, reps: def.reps, done: false }] });
   renderWorkout();
+}
+
+// ── デフォルト値（前回セッション） ────────────────────────────────────────────
+
+function lastUsedFor(name) {
+  for (var i = 0; i < wkHistory.length; i++) {
+    var sess = wkHistory[i];
+    if (!sess || !sess.exercises) continue;
+    for (var j = 0; j < sess.exercises.length; j++) {
+      var ex = sess.exercises[j];
+      if (ex.name === name && ex.sets && ex.sets.length > 0) {
+        return { weight: parseFloat(ex.sets[0].weight) || 0, reps: parseInt(ex.sets[0].reps) || 10 };
+      }
+    }
+  }
+  return { weight: 0, reps: 10 };
 }
 
 // ── ベスト記録 ────────────────────────────────────────────────────────────────
@@ -628,7 +652,25 @@ function startElapsed() {
 
 // ── ピッカー ──────────────────────────────────────────────────────────────────
 
+function showHistoryDetail(sess) {
+  document.querySelector('#overlay .sheet-title').textContent =
+    sess.type + ' · ' + sess.date + (sess.duration ? ' · ' + fmtDur(sess.duration) : '');
+  var list = clearEl('picker-list');
+  (sess.exercises || []).forEach(function(ex) {
+    if (!ex.sets || !ex.sets.length) return;
+    list.appendChild(h('div', {cls: 'picker-group', txt: ex.name}));
+    var gl = h('div', {cls: 'picker-group-list'});
+    ex.sets.forEach(function(s, si) {
+      gl.appendChild(h('div', {cls: 'picker-item',
+        txt: 'Set ' + (si + 1) + '　' + (s.weight || '—') + ' kg × ' + (s.reps || '—') + ' 回'}));
+    });
+    list.appendChild(gl);
+  });
+  document.getElementById('overlay').classList.add('open');
+}
+
 function openPicker() {
+  document.querySelector('#overlay .sheet-title').textContent = '種目を追加';
   var list = clearEl('picker-list');
   Object.entries(EXERCISES).forEach(function(entry) {
     var group = entry[0], exs = entry[1];
