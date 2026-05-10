@@ -155,7 +155,7 @@
   <div class="home-header">
     <div style="display:flex;justify-content:space-between;align-items:baseline;">
       <div class="home-title">筋トレ</div>
-      <div style="font-size:11px;color:var(--sep);">v1.0.4</div>
+      <div style="font-size:11px;color:var(--sep);">v1.0.5</div>
     </div>
     <div id="home-date" class="home-date"></div>
   </div>
@@ -323,9 +323,17 @@ function startWorkout(type) {
 function renderWorkout() {
   saveDraft();
   var body = clearEl('workout-body');
-  session.exercises.forEach(function(ex, ei) {
-    body.appendChild(buildExCard(ex, ei));
-  });
+  if (!session || !Array.isArray(session.exercises)) {
+    body.appendChild(h('div', {cls: 'history-empty', txt: 'session error: ' + JSON.stringify(session).slice(0,80)}));
+    return;
+  }
+  try {
+    session.exercises.forEach(function(ex, ei) {
+      body.appendChild(buildExCard(ex, ei));
+    });
+  } catch(err) {
+    body.appendChild(h('div', {cls: 'history-empty', txt: 'render error: ' + err.message}));
+  }
   body.appendChild(h('button', {cls: 'add-ex-btn', txt: '＋ 種目を追加', $click: openPicker}));
 }
 

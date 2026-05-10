@@ -1,4 +1,4 @@
-const CACHE = 'muscle-v4';
+const CACHE = 'muscle-v5';
 
 self.addEventListener('install', function(e) {
   e.waitUntil(
