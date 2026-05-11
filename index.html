@@ -163,7 +163,7 @@
   <div class="home-header">
     <div style="display:flex;justify-content:space-between;align-items:baseline;">
       <div class="home-title">筋トレ</div>
-      <div style="font-size:11px;color:var(--sep);">v1.0.9</div>
+      <div style="font-size:11px;color:var(--sep);">v1.1.0</div>
     </div>
     <div id="home-date" class="home-date"></div>
   </div>
@@ -646,10 +646,13 @@ function finishWorkout() {
 
   var json = JSON.stringify(done, null, 2);
 
+  function finish(copied) {
+    goHome();
+    showToast(copied ? '保存しました ✓' : '保存しました（コピー失敗）');
+  }
+
   if (navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(json)
-      .then(function()  { renderSummary(true);  showScreen('summary'); })
-      .catch(function() { renderSummary(false); showScreen('summary'); });
+    navigator.clipboard.writeText(json).then(function() { finish(true); }).catch(function() { finish(false); });
   } else {
     var ok = false;
     try {
@@ -658,8 +661,7 @@ function finishWorkout() {
       document.execCommand('copy'); document.body.removeChild(t);
       ok = true;
     } catch(e) {}
-    renderSummary(ok);
-    showScreen('summary');
+    finish(ok);
   }
 }
 
