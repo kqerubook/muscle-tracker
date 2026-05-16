@@ -76,7 +76,7 @@
     .btn-finish  { background: var(--blue); color: #fff; border: none; border-radius: 20px; padding: 7px 18px; font-size: 15px; font-weight: 600; cursor: pointer; }
     .btn-finish:active { opacity: .75; }
 
-    .workout-body { padding: 14px 16px; padding-bottom: calc(var(--sb) + 110px); }
+    .workout-body { padding: 14px 16px; padding-bottom: calc(var(--sb) + 200px); }
 
     .ex-card      { background: var(--card); border-radius: 14px; margin-bottom: 12px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,.07); }
     .ex-card-head { padding: 13px 16px 10px; display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 1px solid var(--sep); }
@@ -105,14 +105,14 @@
     .add-ex-btn  { width: 100%; padding: 16px; background: var(--card); border: none; border-radius: 14px; color: var(--blue); font-size: 16px; font-weight: 500; cursor: pointer; box-shadow: 0 1px 4px rgba(0,0,0,.07); display: flex; align-items: center; justify-content: center; gap: 6px; }
 
     /* TIMER RING */
-    .timer-bar       { position: fixed; bottom: 0; left: 0; right: 0; padding: 8px 24px calc(var(--sb) + 8px); background: rgba(242,242,247,.96); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-top: 1px solid var(--sep); display: flex; align-items: center; justify-content: center; gap: 24px; }
-    .timer-ring-wrap { position: relative; width: 72px; height: 72px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
-    .timer-ring-wrap svg { position: absolute; inset: 0; width: 72px; height: 72px; }
+    .timer-bar       { position: fixed; bottom: 0; left: 0; right: 0; padding: 14px 24px calc(var(--sb) + 14px); background: rgba(242,242,247,.96); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-top: 1px solid var(--sep); display: flex; align-items: center; justify-content: center; gap: 24px; }
+    .timer-ring-wrap { position: relative; width: 158px; height: 158px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+    .timer-ring-wrap svg { position: absolute; inset: 0; width: 158px; height: 158px; }
     #ring-prog { transition: stroke-dashoffset 0.9s linear, stroke 0.3s; }
-    .timer-val-center { font-size: 16px; font-weight: 700; font-variant-numeric: tabular-nums; position: relative; z-index: 1; }
+    .timer-val-center { font-size: 34px; font-weight: 700; font-variant-numeric: tabular-nums; position: relative; z-index: 1; }
     .timer-val-center.on  { color: var(--blue); }
     .timer-val-center.hot { color: var(--red); }
-    .timer-btn { width: 56px; height: 56px; border-radius: 50%; background: var(--blue); border: none; color: #fff; font-size: 22px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: transform .1s; }
+    .timer-btn { width: 120px; height: 120px; border-radius: 50%; background: var(--blue); border: none; color: #fff; font-size: 44px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: transform .1s; }
     .timer-btn:active { transform: scale(.91); }
     .timer-btn.on { background: var(--orange); }
 
@@ -756,19 +756,16 @@ function showHistoryDetail(sess) {
 function openPicker() {
   document.querySelector('#overlay .sheet-title').textContent = '種目を追加';
   var list = clearEl('picker-list');
-  Object.entries(EXERCISES).forEach(function(entry) {
-    var group = entry[0], exs = entry[1];
-    list.appendChild(h('div', {cls: 'picker-group', txt: group}));
-    var groupList = h('div', {cls: 'picker-group-list'});
-    exs.forEach(function(name) {
-      var item = h('div', {cls: 'picker-item', txt: name});
-      item.addEventListener('click', (function(n) {
-        return function() { addExercise(n); closePicker(); };
-      })(name));
-      groupList.appendChild(item);
-    });
-    list.appendChild(groupList);
+  var exs = EXERCISES[session.type] || [];
+  var groupList = h('div', {cls: 'picker-group-list'});
+  exs.forEach(function(name) {
+    var item = h('div', {cls: 'picker-item', txt: name});
+    item.addEventListener('click', (function(n) {
+      return function() { addExercise(n); closePicker(); };
+    })(name));
+    groupList.appendChild(item);
   });
+  list.appendChild(groupList);
   document.getElementById('overlay').classList.add('open');
 }
 
