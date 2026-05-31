@@ -157,6 +157,18 @@
     .toast { position: fixed; bottom: calc(var(--sb) + 90px); left: 50%; transform: translateX(-50%) translateY(16px); background: rgba(40,40,40,.88); color: #fff; padding: 10px 22px; border-radius: 22px; font-size: 14px; opacity: 0; transition: all .28s; pointer-events: none; white-space: nowrap; z-index: 400; }
     .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
+    /* EXERCISE MANAGER */
+    .exmgr-list { background: var(--card); border-radius: 12px; margin-bottom: 4px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
+    .exmgr-row  { display: flex; align-items: center; padding: 13px 16px; border-bottom: 1px solid var(--sep); }
+    .exmgr-name { flex: 1; font-size: 16px; }
+    .exmgr-del  { background: none; border: none; color: var(--red); font-size: 20px; cursor: pointer; padding: 0 0 0 8px; line-height: 1; flex-shrink: 0; }
+    .exmgr-del:active { opacity: .6; }
+    .exmgr-add-row   { display: flex; align-items: center; padding: 8px 12px; gap: 8px; border-top: 1px solid var(--sep); }
+    .exmgr-add-input { flex: 1; border: 1.5px solid var(--sep); border-radius: 8px; padding: 8px 12px; font-size: 15px; background: var(--fill); outline: none; font-family: inherit; color: var(--label); }
+    .exmgr-add-input:focus { border-color: var(--blue); }
+    .exmgr-confirm-btn { background: var(--blue); color: #fff; border: none; border-radius: 8px; padding: 8px 14px; font-size: 15px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+    .exmgr-confirm-btn:active { opacity: .78; }
+
     /* IMPORT */
     .import-hint { font-size: 13px; color: var(--gray); text-align: center; padding: 0 0 10px; }
     .import-textarea { width: 100%; height: 120px; border: 1.5px solid var(--sep); border-radius: 10px; padding: 10px 12px; font-size: 13px; font-family: monospace; resize: none; background: var(--card); color: var(--label); outline: none; }
@@ -170,9 +182,12 @@
 <!-- HOME -->
 <div id="screen-home" class="screen active">
   <div class="home-header">
-    <div style="display:flex;justify-content:space-between;align-items:baseline;">
+    <div style="display:flex;justify-content:space-between;align-items:center;">
       <div class="home-title">筋トレ</div>
-      <div style="font-size:11px;color:var(--sep);">v1.1.4</div>
+      <div style="display:flex;align-items:center;gap:14px;">
+        <button onclick="openExerciseManager()" style="background:none;border:none;color:var(--blue);font-size:14px;font-weight:600;cursor:pointer;padding:4px 0;">種目管理</button>
+        <div style="font-size:11px;color:var(--sep);">v1.1.5</div>
+      </div>
     </div>
     <div id="home-date" class="home-date"></div>
   </div>
@@ -218,6 +233,18 @@
   <div id="summary-body" class="summary-body"></div>
 </div>
 
+<!-- EXERCISE MANAGER -->
+<div id="screen-exercises" class="screen">
+  <div class="workout-nav">
+    <button class="nav-back" onclick="showScreen('home')">‹ 戻る</button>
+    <div class="nav-center">
+      <div class="nav-title">種目管理</div>
+    </div>
+    <div style="width:60px;"></div>
+  </div>
+  <div id="exmgr-body" style="padding: 8px 16px; padding-bottom: calc(var(--sb) + 32px);"></div>
+</div>
+
 <!-- Picker -->
 <div id="overlay" class="overlay" onclick="overlayClick(event)">
   <div class="sheet">
@@ -243,11 +270,13 @@
 <div id="toast" class="toast"></div>
 
 <script>
-const EXERCISES = {
+const EXERCISES_DEFAULT = {
   Push: ['ベンチプレス','チェストプレス','バタフライ','インクラインダンベルプレス','ショルダープレス','サイドレイズ','ケーブルプッシュダウン'],
   Pull: ['ラットプルダウン','ローイング','リバースフライ','フェイスプル','ダンベルカール','ベントオーバーローイング'],
   Legs: ['スクワット','レッグプレス','レッグエクステンション','レッグカール','アダクション','アブダクション','ルーマニアンデッドリフト','アブドミナル','ロータリートーソ','カーフレイズ']
 };
+
+var EXERCISES = {};
 
 const RING_CIRC = 188.5;
 
@@ -288,10 +317,87 @@ function clearEl(id) {
 // ── 起動 ──────────────────────────────────────────────────────────────────────
 
 function init() {
+  loadExercises();
   try { var ph = JSON.parse(localStorage.getItem('muscle_history') || '[]'); wkHistory = Array.isArray(ph) ? ph : []; } catch(e) { wkHistory = []; }
   try { var d = localStorage.getItem('muscle_draft'); if (d) session = JSON.parse(d); } catch(e) {}
   renderHome();
   updateTimerUI();
+}
+
+// ── 種目リスト管理 ────────────────────────────────────────────────────────────
+
+function loadExercises() {
+  try {
+    var stored = localStorage.getItem('muscle_exercises');
+    if (stored) {
+      var parsed = JSON.parse(stored);
+      if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+        EXERCISES = parsed; return;
+      }
+    }
+  } catch(e) {}
+  EXERCISES = JSON.parse(JSON.stringify(EXERCISES_DEFAULT));
+}
+
+function saveExercises() {
+  localStorage.setItem('muscle_exercises', JSON.stringify(EXERCISES));
+}
+
+function openExerciseManager() {
+  renderExerciseManager();
+  showScreen('exercises');
+}
+
+function renderExerciseManager() {
+  var body = clearEl('exmgr-body');
+  Object.keys(EXERCISES).forEach(function(cat) {
+    body.appendChild(h('div', {cls: 'section-label', txt: cat}));
+    var list = h('div', {cls: 'exmgr-list'});
+
+    EXERCISES[cat].forEach(function(name, idx) {
+      var row = h('div', {cls: 'exmgr-row'});
+      var delBtn = h('button', {cls: 'exmgr-del', type: 'button', txt: '×'});
+      delBtn.addEventListener('click', (function(c, i) {
+        return function() { deleteExerciseItem(c, i); };
+      })(cat, idx));
+      append(row, h('span', {cls: 'exmgr-name', txt: name}), delBtn);
+      list.appendChild(row);
+    });
+
+    var addRow = h('div', {cls: 'exmgr-add-row'});
+    var inp = h('input', {cls: 'exmgr-add-input', type: 'text', placeholder: '種目名を入力'});
+    var addBtn = h('button', {cls: 'exmgr-confirm-btn', type: 'button', txt: '追加'});
+    addBtn.addEventListener('click', (function(c, i) {
+      return function() {
+        var name = i.value.trim(); if (!name) return;
+        addExerciseItem(c, name); i.value = '';
+      };
+    })(cat, inp));
+    inp.addEventListener('keydown', (function(c, i) {
+      return function(e) {
+        if (e.key !== 'Enter') return;
+        var name = i.value.trim(); if (!name) return;
+        addExerciseItem(c, name); i.value = ''; i.blur();
+      };
+    })(cat, inp));
+    append(addRow, inp, addBtn);
+    list.appendChild(addRow);
+    body.appendChild(list);
+  });
+}
+
+function deleteExerciseItem(cat, idx) {
+  EXERCISES[cat].splice(idx, 1);
+  saveExercises();
+  renderExerciseManager();
+}
+
+function addExerciseItem(cat, name) {
+  if (EXERCISES[cat].indexOf(name) !== -1) { showToast(name + ' は追加済みです'); return; }
+  EXERCISES[cat].push(name);
+  saveExercises();
+  renderExerciseManager();
+  showToast(name + ' を追加しました');
 }
 
 // ── ホーム ────────────────────────────────────────────────────────────────────
