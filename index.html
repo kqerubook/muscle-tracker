@@ -156,6 +156,13 @@
     /* TOAST */
     .toast { position: fixed; bottom: calc(var(--sb) + 90px); left: 50%; transform: translateX(-50%) translateY(16px); background: rgba(40,40,40,.88); color: #fff; padding: 10px 22px; border-radius: 22px; font-size: 14px; opacity: 0; transition: all .28s; pointer-events: none; white-space: nowrap; z-index: 400; }
     .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    /* IMPORT */
+    .import-hint { font-size: 13px; color: var(--gray); text-align: center; padding: 0 0 10px; }
+    .import-textarea { width: 100%; height: 120px; border: 1.5px solid var(--sep); border-radius: 10px; padding: 10px 12px; font-size: 13px; font-family: monospace; resize: none; background: var(--card); color: var(--label); outline: none; }
+    .import-textarea:focus { border-color: var(--blue); }
+    .btn-import-exec { width: 100%; padding: 14px; background: var(--blue); color: #fff; border: none; border-radius: 13px; font-size: 16px; font-weight: 600; cursor: pointer; margin-top: 10px; }
+    .btn-import-exec:active { opacity: .78; }
   </style>
 </head>
 <body>
@@ -165,7 +172,7 @@
   <div class="home-header">
     <div style="display:flex;justify-content:space-between;align-items:baseline;">
       <div class="home-title">筋トレ</div>
-      <div style="font-size:11px;color:var(--sep);">v1.1.3</div>
+      <div style="font-size:11px;color:var(--sep);">v1.1.4</div>
     </div>
     <div id="home-date" class="home-date"></div>
   </div>
@@ -217,6 +224,19 @@
     <div class="sheet-handle"></div>
     <div class="sheet-title">種目を追加</div>
     <div id="picker-list"></div>
+  </div>
+</div>
+
+<!-- Import Sheet -->
+<div id="overlay-import" class="overlay" onclick="importOverlayClick(event)">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">記録をインポート</div>
+    <div style="padding: 0 16px 8px;">
+      <div class="import-hint">書き出した JSON をここに貼り付けてください</div>
+      <textarea id="import-textarea" class="import-textarea" placeholder='[{"date":"2026-01-01",...}]'></textarea>
+      <button class="btn-import-exec" onclick="executeImport()">インポート</button>
+    </div>
   </div>
 </div>
 
@@ -288,6 +308,9 @@ function renderHome() {
     var expBtn0 = h('button', {cls: 'btn-export-all', txt: '📤 全記録を書き出し'});
     expBtn0.addEventListener('click', exportAllData);
     list.appendChild(expBtn0);
+    var impBtn0 = h('button', {cls: 'btn-export-all', txt: '📥 記録をインポート'});
+    impBtn0.addEventListener('click', openImport);
+    list.appendChild(impBtn0);
     return;
   }
 
@@ -327,6 +350,9 @@ function renderHome() {
   var expBtn = h('button', {cls: 'btn-export-all', txt: '📤 全記録を書き出し'});
   expBtn.addEventListener('click', exportAllData);
   list.appendChild(expBtn);
+  var impBtn = h('button', {cls: 'btn-export-all', txt: '📥 記録をインポート'});
+  impBtn.addEventListener('click', openImport);
+  list.appendChild(impBtn);
 }
 
 // ── ワークアウト ──────────────────────────────────────────────────────────────
@@ -528,6 +554,47 @@ function lastSessionFor(name) {
     }
   }
   return null;
+}
+
+function openImport() {
+  document.getElementById('import-textarea').value = '';
+  document.getElementById('overlay-import').classList.add('open');
+}
+
+function closeImport() {
+  document.getElementById('overlay-import').classList.remove('open');
+}
+
+function importOverlayClick(e) {
+  if (e.target.id === 'overlay-import') closeImport();
+}
+
+function executeImport() {
+  var text = document.getElementById('import-textarea').value.trim();
+  if (!text) { showToast('JSONを貼り付けてください'); return; }
+  var data;
+  try { data = JSON.parse(text); } catch(e) { showToast('JSONの形式が正しくありません'); return; }
+  if (!Array.isArray(data)) { showToast('データ形式が不正です（配列が必要です）'); return; }
+
+  var existingKeys = {};
+  wkHistory.forEach(function(s) {
+    existingKeys[s.date + '|' + s.type + '|' + (s.duration || 0)] = true;
+  });
+
+  var added = 0;
+  data.forEach(function(s) {
+    if (!s || !s.date) return;
+    var key = s.date + '|' + s.type + '|' + (s.duration || 0);
+    if (!existingKeys[key]) { wkHistory.push(s); added++; }
+  });
+
+  wkHistory.sort(function(a, b) { return b.date < a.date ? -1 : b.date > a.date ? 1 : 0; });
+  if (wkHistory.length > 200) wkHistory = wkHistory.slice(0, 200);
+  localStorage.setItem('muscle_history', JSON.stringify(wkHistory));
+
+  closeImport();
+  renderHome();
+  showToast(added > 0 ? added + '件の記録を追加しました' : '新しい記録はありませんでした');
 }
 
 function exportAllData() {
