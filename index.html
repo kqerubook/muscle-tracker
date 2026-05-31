@@ -84,6 +84,8 @@
     .ex-name      { font-size: 16px; font-weight: 600; }
     .ex-prev      { font-size: 11px; color: var(--gray); }
     .ex-best-lbl  { font-size: 12px; color: var(--blue); font-weight: 600; max-width: 50%; text-align: right; flex-shrink: 0; }
+    .ex-del-btn   { background: none; border: none; color: var(--red); font-size: 20px; cursor: pointer; padding: 0 0 0 10px; line-height: 1; flex-shrink: 0; }
+    .ex-del-btn:active { opacity: .6; }
 
     /* STEPPER */
     .set-row  { display: flex; align-items: center; gap: 6px; padding: 8px 14px; border-top: 1px solid var(--sep); }
@@ -106,13 +108,13 @@
 
     /* TIMER RING */
     .timer-bar       { position: fixed; bottom: 0; left: 0; right: 0; padding: 14px 24px calc(var(--sb) + 14px); background: rgba(242,242,247,.96); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-top: 1px solid var(--sep); display: flex; align-items: center; justify-content: center; gap: 24px; }
-    .timer-ring-wrap { position: relative; width: 158px; height: 158px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
-    .timer-ring-wrap svg { position: absolute; inset: 0; width: 158px; height: 158px; }
+    .timer-ring-wrap { position: relative; width: 126px; height: 126px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+    .timer-ring-wrap svg { position: absolute; inset: 0; width: 126px; height: 126px; }
     #ring-prog { transition: stroke-dashoffset 0.9s linear, stroke 0.3s; }
-    .timer-val-center { font-size: 34px; font-weight: 700; font-variant-numeric: tabular-nums; position: relative; z-index: 1; }
+    .timer-val-center { font-size: 27px; font-weight: 700; font-variant-numeric: tabular-nums; position: relative; z-index: 1; }
     .timer-val-center.on  { color: var(--blue); }
     .timer-val-center.hot { color: var(--red); }
-    .timer-btn { width: 120px; height: 120px; border-radius: 50%; background: var(--blue); border: none; color: #fff; font-size: 44px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: transform .1s; }
+    .timer-btn { width: 96px; height: 96px; border-radius: 50%; background: var(--blue); border: none; color: #fff; font-size: 35px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: transform .1s; }
     .timer-btn:active { transform: scale(.91); }
     .timer-btn.on { background: var(--orange); }
 
@@ -163,7 +165,7 @@
   <div class="home-header">
     <div style="display:flex;justify-content:space-between;align-items:baseline;">
       <div class="home-title">筋トレ</div>
-      <div style="font-size:11px;color:var(--sep);">v1.1.1</div>
+      <div style="font-size:11px;color:var(--sep);">v1.1.2</div>
     </div>
     <div id="home-date" class="home-date"></div>
   </div>
@@ -350,7 +352,6 @@ function renderHome() {
 function startWorkout(type) {
   if (!session || session.type !== type || session.duration) {
     session = { date: today(), type: type, startTime: Date.now(), exercises: [] };
-    addExercise(EXERCISES[type][0]);
   }
   document.getElementById('nav-type').textContent = type;
   showScreen('workout');
@@ -390,7 +391,9 @@ function buildExCard(ex, ei) {
   var nameWrap = h('div', {cls: 'ex-name-wrap'});
   nameWrap.appendChild(h('span', {cls: 'ex-name', txt: ex.name}));
   if (prevTxt) nameWrap.appendChild(h('span', {cls: 'ex-prev', txt: prevTxt}));
-  append(cardHead, nameWrap, h('span', {cls: 'ex-best-lbl', txt: bestTxt}));
+  var delBtn = h('button', {cls: 'ex-del-btn', type: 'button', txt: '×'});
+  delBtn.addEventListener('click', (function(i) { return function() { removeExercise(i); }; })(ei));
+  append(cardHead, nameWrap, h('span', {cls: 'ex-best-lbl', txt: bestTxt}), delBtn);
 
   var setsBody = h('div', {cls: 'sets-body'});
   ex.sets.forEach(function(s, si) {
@@ -500,6 +503,11 @@ function addSet(ei) {
   var sets = session.exercises[ei].sets;
   var last = sets[sets.length - 1] || {};
   sets.push({ weight: last.weight || 0, reps: last.reps || 10, done: false });
+  renderWorkout();
+}
+
+function removeExercise(ei) {
+  session.exercises.splice(ei, 1);
   renderWorkout();
 }
 
@@ -666,13 +674,6 @@ function finishWorkout() {
 }
 
 function confirmBack() {
-  var dirty = session && session.exercises &&
-    session.exercises.some(function(e) {
-      return e.sets.some(function(s) {
-        return (parseFloat(s.weight)||0) > 0 || (parseInt(s.reps)||0) > 0;
-      });
-    });
-  if (dirty && !confirm('ワークアウトを中断しますか？\nデータは一時保存されます。')) return;
   clearInterval(elapsedTick);
   showScreen('home');
   renderHome();
@@ -756,16 +757,18 @@ function showHistoryDetail(sess) {
 function openPicker() {
   document.querySelector('#overlay .sheet-title').textContent = '種目を追加';
   var list = clearEl('picker-list');
-  var exs = EXERCISES[session.type] || [];
-  var groupList = h('div', {cls: 'picker-group-list'});
-  exs.forEach(function(name) {
-    var item = h('div', {cls: 'picker-item', txt: name});
-    item.addEventListener('click', (function(n) {
-      return function() { addExercise(n); closePicker(); };
-    })(name));
-    groupList.appendChild(item);
+  Object.keys(EXERCISES).forEach(function(cat) {
+    list.appendChild(h('div', {cls: 'picker-group', txt: cat}));
+    var groupList = h('div', {cls: 'picker-group-list'});
+    EXERCISES[cat].forEach(function(name) {
+      var item = h('div', {cls: 'picker-item', txt: name});
+      item.addEventListener('click', (function(n) {
+        return function() { addExercise(n); closePicker(); };
+      })(name));
+      groupList.appendChild(item);
+    });
+    list.appendChild(groupList);
   });
-  list.appendChild(groupList);
   document.getElementById('overlay').classList.add('open');
 }
 
