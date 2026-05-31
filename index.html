@@ -165,27 +165,13 @@
   <div class="home-header">
     <div style="display:flex;justify-content:space-between;align-items:baseline;">
       <div class="home-title">筋トレ</div>
-      <div style="font-size:11px;color:var(--sep);">v1.1.2</div>
+      <div style="font-size:11px;color:var(--sep);">v1.1.3</div>
     </div>
     <div id="home-date" class="home-date"></div>
   </div>
   <div class="section-label">今日のワークアウト</div>
-  <div class="type-grid">
-    <button class="type-btn" onclick="startWorkout('Push')">
-      <div class="type-icon">💪</div>
-      <div class="type-label">Push</div>
-      <div class="type-sub">胸・肩・三頭</div>
-    </button>
-    <button class="type-btn" onclick="startWorkout('Pull')">
-      <div class="type-icon">🏋️</div>
-      <div class="type-label">Pull</div>
-      <div class="type-sub">背中・二頭</div>
-    </button>
-    <button class="type-btn" onclick="startWorkout('Legs')">
-      <div class="type-icon">🦵</div>
-      <div class="type-label">Legs</div>
-      <div class="type-sub">脚・臀部</div>
-    </button>
+  <div style="padding: 0 16px 4px;">
+    <button class="add-ex-btn" onclick="startWorkout()" style="font-size:18px;font-weight:700;padding:22px;">💪 ワークアウト開始</button>
   </div>
   <div class="section-label">最近の記録</div>
   <div id="history-list" class="history-list"></div>
@@ -197,7 +183,6 @@
     <button class="nav-back" onclick="confirmBack()">‹ 戻る</button>
     <div class="nav-center">
       <div id="nav-type" class="nav-title"></div>
-      <div id="nav-elapsed" class="nav-elapsed">0:00</div>
     </div>
     <button class="btn-finish" onclick="finishWorkout()">終了</button>
   </div>
@@ -246,9 +231,8 @@ const EXERCISES = {
 
 const RING_CIRC = 188.5;
 
-var session     = null;
-var wkHistory   = [];
-var elapsedTick = null;
+var session   = null;
+var wkHistory = [];
 var tmr = { running: false, remaining: 60, base: 60, tick: null };
 
 // ── DOM ヘルパー ──────────────────────────────────────────────────────────────
@@ -328,12 +312,10 @@ function renderHome() {
 
     sessions.forEach(function(s) {
       var exNames = s.exercises.map(function(e) { return e.name; }).join(' · ');
-      var dur = s.duration ? fmtDur(s.duration) : '';
       var card = h('div', {cls: 'history-card'});
       var top  = h('div', {cls: 'history-top'});
       append(top,
-        h('span', {cls: 'history-badge', txt: s.type}),
-        h('span', {cls: 'history-meta',  txt: dur})
+        h('span', {cls: 'history-badge', txt: s.type})
       );
       append(card, top, h('div', {cls: 'history-exs', txt: exNames}));
       card.style.cursor = 'pointer';
@@ -349,13 +331,12 @@ function renderHome() {
 
 // ── ワークアウト ──────────────────────────────────────────────────────────────
 
-function startWorkout(type) {
-  if (!session || session.type !== type || session.duration) {
-    session = { date: today(), type: type, startTime: Date.now(), exercises: [] };
+function startWorkout() {
+  if (!session || session.duration) {
+    session = { date: today(), type: 'ワークアウト', startTime: Date.now(), exercises: [] };
   }
-  document.getElementById('nav-type').textContent = type;
+  document.getElementById('nav-type').textContent = 'ワークアウト';
   showScreen('workout');
-  startElapsed();
   renderWorkout();
 }
 
@@ -629,7 +610,6 @@ function finishWorkout() {
   });
   if (!hasData) { showToast('データを入力してください'); return; }
 
-  clearInterval(elapsedTick);
   clearInterval(tmr.tick);
   tmr.running = false;
 
@@ -726,20 +706,10 @@ function updateTimerUI() {
   }
 }
 
-function startElapsed() {
-  clearInterval(elapsedTick);
-  elapsedTick = setInterval(function() {
-    if (!session) return;
-    var el = document.getElementById('nav-elapsed');
-    if (el) el.textContent = fmtDur(Math.floor((Date.now() - session.startTime) / 1000));
-  }, 1000);
-}
-
 // ── ピッカー ──────────────────────────────────────────────────────────────────
 
 function showHistoryDetail(sess) {
-  document.querySelector('#overlay .sheet-title').textContent =
-    sess.type + ' · ' + sess.date + (sess.duration ? ' · ' + fmtDur(sess.duration) : '');
+  document.querySelector('#overlay .sheet-title').textContent = sess.date;
   var list = clearEl('picker-list');
   (sess.exercises || []).forEach(function(ex) {
     if (!ex.sets || !ex.sets.length) return;
@@ -780,7 +750,7 @@ function overlayClick(e) { if (e.target.id === 'overlay') closePicker(); }
 function renderSummary(copied) {
   var total = session.exercises.reduce(function(n, e) { return n + e.sets.length; }, 0);
   document.getElementById('summary-meta').textContent =
-    session.date + '　' + session.type + '　' + fmtDur(session.duration || 0) + '　' + total + 'セット';
+    session.date + '　' + total + 'セット';
 
   var prevSess    = wkHistory.find(function(s) { return s.type === session.type && s.date !== session.date; });
   var prevHistory = wkHistory.slice(1);
