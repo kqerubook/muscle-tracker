@@ -186,7 +186,7 @@
       <div class="home-title">筋トレ</div>
       <div style="display:flex;align-items:center;gap:14px;">
         <button onclick="openExerciseManager()" style="background:none;border:none;color:var(--blue);font-size:14px;font-weight:600;cursor:pointer;padding:4px 0;">種目管理</button>
-        <div style="font-size:11px;color:var(--sep);">v1.1.5</div>
+        <div style="font-size:11px;color:var(--sep);">v1.1.6</div>
       </div>
     </div>
     <div id="home-date" class="home-date"></div>
@@ -440,13 +440,22 @@ function renderHome() {
     list.appendChild(dateRow);
 
     sessions.forEach(function(s) {
-      var exNames = s.exercises.map(function(e) { return e.name; }).join(' · ');
       var card = h('div', {cls: 'history-card'});
       var top  = h('div', {cls: 'history-top'});
-      append(top,
-        h('span', {cls: 'history-badge', txt: s.type})
-      );
-      append(card, top, h('div', {cls: 'history-exs', txt: exNames}));
+      append(top, h('span', {cls: 'history-badge', txt: s.type}));
+      card.appendChild(top);
+      s.exercises.forEach(function(e) {
+        var maxSet = null;
+        (e.sets || []).forEach(function(set) {
+          var w = parseFloat(set.weight) || 0;
+          if (!maxSet || w > (parseFloat(maxSet.weight) || 0)) maxSet = set;
+        });
+        var line = e.name;
+        if (maxSet && (parseFloat(maxSet.weight) || 0) > 0) {
+          line += '  ' + maxSet.weight + 'kg × ' + maxSet.reps + '回';
+        }
+        card.appendChild(h('div', {cls: 'history-exs', txt: line}));
+      });
       card.style.cursor = 'pointer';
       card.addEventListener('click', (function(sess) { return function() { showHistoryDetail(sess); }; })(s));
       list.appendChild(card);
@@ -827,7 +836,6 @@ function finishWorkout() {
 }
 
 function confirmBack() {
-  clearInterval(elapsedTick);
   showScreen('home');
   renderHome();
 }
